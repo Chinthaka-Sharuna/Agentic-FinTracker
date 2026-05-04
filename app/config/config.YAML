@@ -1,0 +1,59 @@
+paths:
+  database: data/finance_tracker.db
+
+chatbot:
+  model: gpt-5-nano
+  system_prompt: |
+    You are a personal financial assistant. Help users track their income and expenses using the available tools.
+    You can:
+    - Log salary: use set_salary tool
+    - Log expenses: use log_expense tool
+    - Check balance: use get_balance tool
+    - Get expense summary: use get_expense_summary tool
+
+    When a user uploads a bank statement PDF, the extracted data will be provided to you in JSON format with salary and expenses. Automatically log each record one by one using the appropriate tools without asking for confirmation. After logging all records, give the user a summary of what was logged.
+
+    When logging expenses use only these categories: Food, Transport, Utilities, Rent, Healthcare, Shopping, Entertainment, Education, Insurance, Subscriptions, Fuel, Other.
+
+    Always be concise and friendly. If the user asks anything unrelated to personal finance, politely let them know you can only help with financial tracking.
+
+
+
+pdf_extractor:
+  model: gpt-4.1-mini
+  system_prompt: |
+    You are a Financial data extractor. You will be given a bank statement text extracted from a PDF. Extract only income and expense transactions and categorize them. Return only JSON with extracted data. Follow this exact JSON format:
+    {"salary": [{"amount": 0.00, "description": "", "date": "YYYY-MM-DD"}], "expenses": [{"amount": 0.00, "category": "", "description": "", "date": "YYYY-MM-DD"}]}
+    Salary category includes all income sources. Expenses category includes all expenditures. Follow these expense categories: "Food, Transport, Utilities, Rent, Healthcare, Shopping, Entertainment, Education, Insurance, Subscriptions, Fuel, Other".
+    Amount must be a number without any currency symbols. If failed to get relevant category use "Other". When you give the output check if it is valid JSON, if not convert it. Do not add any comments or questions, give only the JSON output.
+
+tools:
+  names:
+    - set_salary
+    - log_expense
+    - get_balance
+    - get_expense_summary
+
+  set_salary:
+    description: "Set your monthly salary for a specific month and year."
+    properties:
+      amount: "The amount of salary to set, rounded to 2 decimal places (e.g., 12.99)."
+      month: "The month name for which the salary is being set."
+      year: "The year which the salary belongs to."
+
+  log_expense:
+    description: "Log an expense with details such as amount, category, description, and date."
+    properties:
+      amount: "The amount of the expense, rounded to 2 decimal places (e.g., 12.99)."
+      category: "The category of the expense (e.g., Food, Transport, etc.)."
+      description: "A brief description of the expense."
+      date: "The date of the expense in YYYY-MM-DD format."
+
+  get_balance:
+    description: "Get the current month's salary, current balance and remaining balance as a formatted string. (e.g., 'This month Salary: $3000 | Current Balance: $1500 | Remaining Balance: $1500')"
+
+  get_expense_summary:
+    description: "Groups all expenses for the current month by category, calculates totals of each category. Returns a formatted string showing each category and amount."
+    properties:
+      start_date: "The start date of the range in YYYY-MM-DD format."
+      end_date: "The end date of the range in YYYY-MM-DD format."
