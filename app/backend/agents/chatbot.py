@@ -77,7 +77,6 @@ class Chatbot(BaseAgent):
         print(self.conversation_history)
         return assistant_message
 
-
     def _handle_tool_calls(self, message):
         """
         Execute all tool calls requested by the LLM and add results to history.
@@ -103,7 +102,6 @@ class Chatbot(BaseAgent):
 
         # Add all tool results to history
         self.conversation_history.extend(tool_results)
-
 
     def clear_history(self):
         """Reset conversation history, keeping only the system prompt."""

@@ -20,7 +20,6 @@ class BaseAgent:
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
 
-
     def api_call(self, model: str, messages: list, tools: list = None):
         """
         Make a call to the OpenAI-compatible API.

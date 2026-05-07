@@ -1,5 +1,6 @@
 import pdfplumber
 from .base_agent import BaseAgent
+import io
 
 
 class PDFExtractor(BaseAgent):
@@ -31,7 +32,7 @@ class PDFExtractor(BaseAgent):
         self.system_prompt = system_prompt
 
 
-    def extract(self, pdf_path: str) -> str:
+    def extract(self, raw_pdf) -> str:
         """
         Extract structured financial data from a PDF bank statement.
 
@@ -46,7 +47,7 @@ class PDFExtractor(BaseAgent):
         Returns:
             JSON string with salary and expense data, or None if no content found
         """
-        raw_content = self._read_pdf(pdf_path)
+        raw_content = self._read_pdf(raw_pdf)
 
         if not raw_content:
             return None
@@ -55,7 +56,7 @@ class PDFExtractor(BaseAgent):
         return json_string
 
 
-    def _read_pdf(self, pdf_path: str) -> list:
+    def _read_pdf(self, pdf) -> list:
         """
         Read a PDF file and extract text and tables from each page.
 
@@ -70,7 +71,7 @@ class PDFExtractor(BaseAgent):
         """
         content = []
 
-        with pdfplumber.open(pdf_path) as pdf:
+        with pdfplumber.open(io.BytesIO(pdf)) as pdf:
             for page in pdf.pages:
                 tables = page.extract_tables()
                 if tables:
