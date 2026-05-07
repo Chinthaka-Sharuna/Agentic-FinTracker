@@ -27,6 +27,7 @@ const cardsSubText = document.getElementById('bg-cards-sub');
 const aiInsightsEl = document.getElementById('ai-insights');
 
 
+
 // Update functions for each section
 
 function updateBarChart(transactions, start, end) {
@@ -233,8 +234,6 @@ function updateAIInsights(transactions, start, end, budgetList) {
 }
 
 
-
-
 // Utility functions
 
 function priceFormatter(amount) {
@@ -436,78 +435,35 @@ presets.forEach(btn => {
 });
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    const data = {
-        "currency_unit": "USD",
-        "budgets": [
-            { "category": "rent",          "limit": 1000 },
-            { "category": "food",          "limit": 400 },
-            { "category": "transport",     "limit": 200 },
-            { "category": "utilities",     "limit": 150 },
-            { "category": "subscriptions", "limit": 60 },
-            { "category": "entertainment", "limit": 100 },
-            { "category": "fuel",          "limit": 120 },
-            { "category": "shopping",      "limit": 150 }
-        ],
-        "transaction_history": [
-            { "amount":  3000.00, "description": "May Salary",       "category": "salary",        "date": "2026-05-01" },
-            { "amount":  -900.00, "description": "May Rent",         "category": "rent",          "date": "2026-05-01" },
-            { "amount":   -62.00, "description": "Electricity",      "category": "utilities",     "date": "2026-05-02" },
-            { "amount":   -15.99, "description": "Netflix",          "category": "subscriptions", "date": "2026-05-03" },
-            { "amount":   -45.50, "description": "Walmart",          "category": "food",          "date": "2026-05-04" },
-            { "amount":   -25.00, "description": "Uber",             "category": "transport",     "date": "2026-05-05" },
-            { "amount":   -19.01, "description": "Spotify",          "category": "subscriptions", "date": "2026-05-06" },
-            { "amount":   -60.00, "description": "Restaurant",       "category": "food",          "date": "2026-05-08" },
-            { "amount":   -20.00, "description": "Movie",            "category": "entertainment", "date": "2026-05-10" },
-            { "amount":   -40.00, "description": "Lunch",            "category": "food",          "date": "2026-05-12" },
-            { "amount":   -60.00, "description": "Bus pass",         "category": "transport",     "date": "2026-05-15" },
-            { "amount":   -55.00, "description": "Gas station",      "category": "fuel",          "date": "2026-05-18" },
-            { "amount":   -85.00, "description": "Amazon",           "category": "shopping",      "date": "2026-05-20" },
-            { "amount":   -32.00, "description": "Pharmacy",         "category": "healthcare",    "date": "2026-05-22" },
-            { "amount":   -28.00, "description": "Coffee shop",      "category": "food",          "date": "2026-05-25" },
-            { "amount":  3000.00, "description": "April Salary",     "category": "salary",        "date": "2026-04-01" },
-            { "amount":  -900.00, "description": "April Rent",       "category": "rent",          "date": "2026-04-01" },
-            { "amount":   -67.50, "description": "Walmart",          "category": "food",          "date": "2026-04-30" },
-            { "amount":   -12.00, "description": "Starbucks",        "category": "food",          "date": "2026-04-29" },
-            { "amount":   -55.00, "description": "Gas station",      "category": "fuel",          "date": "2026-04-15" },
-            { "amount":   -42.00, "description": "Restaurant",       "category": "food",          "date": "2026-04-20" },
-            { "amount":   -35.00, "description": "Concert tickets",  "category": "entertainment", "date": "2026-04-25" }
-        ]
-    };
-    colorMap = {
-        "food":          { "color": '#F97316', "bg": '#FFEDD5' },
-        "transport":     { "color": '#0EA5E9', "bg": '#E0F2FE' },
-        "utilities":     { "color": '#EAB308', "bg": '#FEF9C3' },
-        "rent":          { "color": '#DC2626', "bg": '#FEE2E2' },
-        "healthcare":    { "color": '#10B981', "bg": '#D1FAE5' },
-        "shopping":      { "color": '#EC4899', "bg": '#FCE7F3' },
-        "entertainment": { "color": '#8B5CF6', "bg": '#EDE9FE' },
-        "education":     { "color": '#3B82F6', "bg": '#DBEAFE' },
-        "insurance":     { "color": '#475569', "bg": '#F1F5F9' },
-        "subscriptions": { "color": '#06B6D4', "bg": '#CFFAFE' },
-        "fuel":          { "color": '#78350F', "bg": '#FEF3C7' },
-        "salary":        { "color": '#16A34A', "bg": '#DCFCE7' },
-        "other":         { "color": '#94A3B8', "bg": '#F1F5F9' }
-    };
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch('/api/budgets');
+        if (!response.ok) throw new Error('Failed to fetch budgets');
 
-    currency_unit = data.currency_unit || 'USD';
-    allTransactions = data.transaction_history;
-    budgets = data.budgets;
+        const data = await response.json();
 
-    // Default to last 30 days
-    const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 29);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
+        currency_unit = 'USD';
+        allTransactions = [];
+        budgets = data.categories || [];
 
-    startDateInput.value = formatDateForInput(thirtyDaysAgo);
-    endDateInput.value = formatDateForInput(today);
+        // Default to last 30 days
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 29);
+        thirtyDaysAgo.setHours(0, 0, 0, 0);
 
-    startDate = thirtyDaysAgo;
-    endDate = new Date(today);
-    endDate.setHours(23, 59, 59, 999);
+        startDateInput.value = formatDateForInput(thirtyDaysAgo);
+        endDateInput.value = formatDateForInput(today);
 
-    document.querySelector('.bg-preset[data-preset="30"]').classList.add('active');
+        startDate = thirtyDaysAgo;
+        endDate = new Date(today);
+        endDate.setHours(23, 59, 59, 999);
 
-    updateBudgetsPage();
+        document.querySelector('.bg-preset[data-preset="30"]').classList.add('active');
+
+        updateBudgetsPage();
+    } catch (error) {
+        console.error('Failed to load budgets data:', error);
+        aiInsightsEl.textContent = 'Failed to load budget data. Please refresh the page.';
+    }
 });

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - FinTracker{% endblock %}
+{% block extra_styles %}<link rel="stylesheet" href="{{url_for('static',filename='css/dashboard.css')}}">{% endblock %}
+
+{% block content %}
+    <header>
+        <div>
+            <p class="date-line" id="heading-date-line">Saturday · May 02, 2026</p>
+            <h1 id="welcome-message">Welcome back, <span>John</span>.</h1>
+        </div>
+        <div class="header-actions">
+            <div class="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" placeholder="Search transactions..." />
+            </div>
+            <button class="cta-btn">+ New Expense</button>
+        </div>
+    </header>
+
+    <section class="dashboard-content">
+        <!-- Stat cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Total Balance</span>
+                    <span class="stat-trend down" id="total-balance-percentage-change"></span>
+                </div>
+                <div class="stat-value" id="account-total-balance">$12,847<span class="cents">.50</span></div>
+                <div class="stat-foot">vs. last month</div>
+            </div>
+
+            <div class="stat-card accent">
+                <div class="stat-top">
+                    <span class="stat-label" id="income-month-name">April Income</span>
+                    <span class="stat-trend">SET</span>
+                </div>
+                <div class="stat-value" id="income-amount">$3,000<span class="cents">.00</span></div>
+                <div class="stat-foot" id="last-logged-income-date">Logged April 30</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Spent This Month</span>
+                    <span class="stat-trend down" id="spent-percentage"></span>
+                </div>
+                <div class="stat-value" id="spent-amount"></div>
+                <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 32%"></div></div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Remaining</span>
+                    <span class="stat-trend up" id="remaining-balance-percentage">68% remaining</span>
+                </div>
+                <div class="stat-value" id="remaining-balance"></div>
+                <div class="stat-foot" id="billing-date"></div>
+            </div>
+        </div>
+
+        <!-- Lower grid -->
+        <div class="lower-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Recent Transactions</h3>
+                    <a href="#" class="see-all">See all</a>
+                </div>
+                <ul class="tx-list" id="recent-transaction-history">
+                    <li>
+                        <div class="tx-icon" style="background:#dbeafe;color:#1e40af">G</div>
+                        <div class="tx-info">
+                            <div class="tx-cat">Groceries</div>
+                            <div class="tx-desc">Walmart · Apr 30</div>
+                        </div>
+                        <div class="tx-amt">−$67.50</div>
+                    </li>
+                    <li>
+                        <div class="tx-icon" style="background:#fee2e2;color:#991b1b">R</div>
+                        <div class="tx-info">
+                            <div class="tx-cat">Rent</div>
+                            <div class="tx-desc">Monthly · Apr 30</div>
+                        </div>
+                        <div class="tx-amt">−$900.00</div>
+                    </li>
+                    <li>
+                        <div class="tx-icon" style="background:#fef3c7;color:#92400e">C</div>
+                        <div class="tx-info">
+                            <div class="tx-cat">Coffee</div>
+                            <div class="tx-desc">Starbucks · Apr 29</div>
+                        </div>
+                        <div class="tx-amt">−$12.00</div>
+                    </li>
+                    <li>
+                        <div class="tx-icon" style="background:#dcfce7;color:#166534">S</div>
+                        <div class="tx-info">
+                            <div class="tx-cat">Salary</div>
+                            <div class="tx-desc">Employer · Apr 30</div>
+                        </div>
+                        <div class="tx-amt income">+$3,000.00</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Spending by Category</h3>
+                    <span class="badge" id="pie-chart-month-name">APR</span>
+                </div>
+                <div class="breakdown">
+                    <canvas id="pie-chart-month" width="400" height="400"></canvas>
+                </div>
+                <div class="insight">
+                    <strong>Insight:</strong> Rent is 93% of this month's spending. You're tracking well below budget.
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block extra_scripts %}
+    <script type="module" src="{{url_for('static',filename='js/dashboard.js')}}"></script>
+{% endblock %}

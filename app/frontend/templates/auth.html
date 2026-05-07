@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTracker — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:           #f7f8fa;
+            --surface:      #ffffff;
+            --sidebar-bg:   #0f172a;
+            --accent:       #3b82f6;
+            --accent-bright:#60a5fa;
+            --accent-soft:  #dbeafe;
+            --ink:          #0f172a;
+            --ink-soft:     #475569;
+            --ink-muted:    #94a3b8;
+            --line:         #e2e8f0;
+            --line-soft:    #f1f5f9;
+            --good:         #10b981;
+            --bad:          #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            height: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Layout ── */
+        .auth-layout {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            min-height: 100vh;
+        }
+
+        /* ── Left panel — brand ── */
+        .auth-brand {
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* decorative circles */
+        .auth-brand::before,
+        .auth-brand::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .auth-brand::before {
+            width: 520px; height: 520px;
+            background: radial-gradient(circle, rgba(59,130,246,0.14) 0%, transparent 70%);
+            top: -120px; left: -120px;
+        }
+        .auth-brand::after {
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(96,165,250,0.1) 0%, transparent 70%);
+            bottom: -80px; right: -80px;
+        }
+
+        .auth-brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        .auth-brand-mark {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 20px;
+            box-shadow: 0 4px 14px rgba(59,130,246,0.4);
+        }
+        .auth-brand-name {
+            font-size: 1.25rem; font-weight: 700;
+            color: #f1f5f9; letter-spacing: -0.01em;
+        }
+
+        .auth-brand-body {
+            position: relative; z-index: 1;
+        }
+        .auth-brand-tagline {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px; text-transform: uppercase;
+            letter-spacing: 0.14em; color: #3b82f6;
+            margin-bottom: 16px; font-weight: 600;
+        }
+        .auth-brand-headline {
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            font-weight: 700; line-height: 1.15;
+            color: #f1f5f9; letter-spacing: -0.025em;
+            margin-bottom: 20px;
+        }
+        .auth-brand-headline span { color: var(--accent-bright); }
+        .auth-brand-sub {
+            font-size: 15px; color: #64748b; line-height: 1.65;
+            max-width: 380px;
+        }
+
+        .auth-brand-features {
+            display: flex; flex-direction: column; gap: 14px;
+            position: relative; z-index: 1;
+        }
+        .auth-feature {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .auth-feature-icon {
+            width: 32px; height: 32px;
+            background: rgba(59,130,246,0.12);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+        }
+        .auth-feature-text {
+            font-size: 13.5px; color: #94a3b8; line-height: 1.4;
+        }
+        .auth-feature-text strong { color: #cbd5e1; font-weight: 600; }
+
+
+        /* ── Right panel — form ── */
+        .auth-form-panel {
+            background: var(--surface);
+            border-left: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px 40px;
+            position: relative;
+        }
+
+        .auth-form-header { margin-bottom: 32px; }
+        .auth-form-title {
+            font-size: 1.5rem; font-weight: 700;
+            color: var(--ink); letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+        .auth-form-sub {
+            font-size: 14px; color: var(--ink-muted);
+        }
+
+        /* Tabs */
+        .auth-tabs {
+            display: flex; gap: 4px;
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+        .auth-tab {
+            flex: 1; padding: 9px;
+            background: transparent; border: none;
+            border-radius: 7px;
+            font-family: inherit; font-size: 13.5px; font-weight: 600;
+            color: var(--ink-muted); cursor: pointer;
+            transition: all 0.18s ease;
+        }
+        .auth-tab.active {
+            background: var(--surface);
+            color: var(--ink);
+            box-shadow: 0 1px 4px rgba(15,23,42,0.08);
+        }
+
+        /* Form */
+        .auth-form { display: flex; flex-direction: column; gap: 16px; }
+        .auth-panel { display: none; flex-direction: column; gap: 16px; }
+        .auth-panel.active { display: flex; }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label {
+            font-size: 12px; font-weight: 600; color: var(--ink-soft);
+            text-transform: uppercase; letter-spacing: 0.06em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .form-input {
+            padding: 11px 14px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            font-family: inherit; font-size: 14px;
+            color: var(--ink); background: var(--bg);
+            outline: none;
+            transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+        }
+        .form-input:focus {
+            border-color: var(--accent);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .form-input.error { border-color: var(--bad); }
+        .form-input.error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+
+        /* Submit button */
+        .auth-submit {
+            padding: 12px;
+            background: linear-gradient(135deg, var(--ink), #1e293b);
+            color: white; border: none;
+            border-radius: 9px;
+            font-family: inherit; font-size: 14px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .auth-submit:hover { background: linear-gradient(135deg, var(--accent), var(--accent-bright)); }
+        .auth-submit:active { transform: scale(0.98); }
+        .auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Error / success banner */
+        .auth-alert {
+            padding: 11px 14px;
+            border-radius: 9px;
+            font-size: 13px; line-height: 1.5;
+            display: none;
+        }
+        .auth-alert.show { display: block; }
+        .auth-alert.error {
+            background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
+        }
+        .auth-alert.success {
+            background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a;
+        }
+
+        /* Divider */
+        .auth-divider {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 11px; color: var(--ink-muted);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .auth-divider::before,
+        .auth-divider::after {
+            content: ''; flex: 1;
+            height: 1px; background: var(--line);
+        }
+
+        .auth-form-footer {
+            margin-top: 24px; text-align: center;
+            font-size: 12px; color: var(--ink-muted);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.04em;
+        }
+
+        /* Spinner inside button */
+        .btn-spinner {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        .auth-submit.loading .btn-label { display: none; }
+        .auth-submit.loading .btn-spinner { display: block; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Responsive ── */
+        @media (max-width: 860px) {
+            .auth-layout { grid-template-columns: 1fr; }
+            .auth-brand { display: none; }
+            .auth-form-panel { padding: 40px 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="auth-layout">
+
+    <!-- Left brand panel -->
+    <div class="auth-brand">
+        <div class="auth-brand-logo">
+            <div class="auth-brand-mark">F</div>
+            <div class="auth-brand-name">FinTracker</div>
+        </div>
+
+        <div class="auth-brand-body">
+            <p class="auth-brand-tagline">Personal Finance</p>
+            <h1 class="auth-brand-headline">
+                Track every dollar.<br>
+                <span>Own your future.</span>
+            </h1>
+            <p class="auth-brand-sub">
+                Log income, categorise expenses, and chat with your AI financial assistant — all in one place.
+            </p>
+        </div>
+
+        <div class="auth-brand-features">
+            <div class="auth-feature">
+                <div class="auth-feature-icon">💬</div>
+                <div class="auth-feature-text"><strong>AI chat</strong> — ask anything about your money</div>
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-icon">📄</div>
+                <div class="auth-feature-text"><strong>PDF import</strong> — upload bank statements instantly</div>
+            </div>
+            <div class="auth-feature">
+                <div class="auth-feature-icon">📊</div>
+                <div class="auth-feature-text"><strong>Live dashboard</strong> — spending breakdown at a glance</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="auth-form-panel">
+        <div class="auth-form-header">
+            <h2 class="auth-form-title">Welcome back</h2>
+            <p class="auth-form-sub">Sign in to your account or create a new one.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+            <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+        </div>
+
+        <!-- Alert banner (shared) -->
+        <div class="auth-alert" id="auth-alert"></div>
+
+        <!-- Login panel -->
+        <div class="auth-panel active" id="panel-login">
+            <div class="form-group">
+                <label class="form-label" for="login-email">Email</label>
+                <input class="form-input" type="email" id="login-email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="login-password">Password</label>
+                <input class="form-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+            </div>
+            <button class="auth-submit" id="login-btn" onclick="handleLogin()">
+                <span class="btn-label">Sign In</span>
+                <div class="btn-spinner"></div>
+            </button>
+        </div>
+
+        <!-- Register panel -->
+        <div class="auth-panel" id="panel-register">
+            <div class="form-group">
+                <label class="form-label" for="reg-username">Username</label>
+                <input class="form-input" type="text" id="reg-username" placeholder="johndoe" autocomplete="username" />
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="reg-email">Email</label>
+                <input class="form-input" type="email" id="reg-email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="reg-password">Password</label>
+                <input class="form-input" type="password" id="reg-password" placeholder="Min. 8 characters" autocomplete="new-password" />
+            </div>
+            <button class="auth-submit" id="register-btn" onclick="handleRegister()">
+                <span class="btn-label">Create Account</span>
+                <div class="btn-spinner"></div>
+            </button>
+        </div>
+
+        <div class="auth-form-footer">
+            Your data is stored securely and never shared.
+        </div>
+    </div>
+</div>
+
+<script>
+    /* ── Helpers ── */
+
+    function showAlert(message, type = 'error') {
+        const el = document.getElementById('auth-alert');
+        el.textContent = message;
+        el.className = `auth-alert show ${type}`;
+    }
+
+    function hideAlert() {
+        const el = document.getElementById('auth-alert');
+        el.className = 'auth-alert';
+    }
+
+    function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        btn.classList.toggle('loading', loading);
+        btn.disabled = loading;
+    }
+
+    function switchTab(tab) {
+        hideAlert();
+        document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+        document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+        document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+        document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+        document.querySelector('.auth-form-header h2').textContent =
+            tab === 'login' ? 'Welcome back' : 'Create your account';
+    }
+
+    function saveSession(token, user) {
+        localStorage.setItem('ft_token', token);
+        localStorage.setItem('ft_user', JSON.stringify(user));
+    }
+
+    /* ── Auth calls ── */
+
+    async function handleLogin() {
+        hideAlert();
+        const email    = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        if (!email || !password) { showAlert('Please fill in all fields.'); return; }
+
+        setLoading('login-btn', true);
+        try {
+            const res  = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (!res.ok) { showAlert(data.error || 'Login failed.'); return; }
+
+            saveSession(data.token, data.user);
+            window.location.href = '/dashboard';
+        } catch (e) {
+            showAlert('Network error. Please try again.');
+        } finally {
+            setLoading('login-btn', false);
+        }
+    }
+
+    async function handleRegister() {
+        hideAlert();
+        const username = document.getElementById('reg-username').value.trim();
+        const email    = document.getElementById('reg-email').value.trim();
+        const password = document.getElementById('reg-password').value;
+
+        if (!username || !email || !password) { showAlert('Please fill in all fields.'); return; }
+        if (password.length < 8) { showAlert('Password must be at least 8 characters.'); return; }
+
+        setLoading('register-btn', true);
+        try {
+            const res  = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            const data = await res.json();
+            if (!res.ok) { showAlert(data.error || 'Registration failed.'); return; }
+
+            saveSession(data.token, data.user);
+            window.location.href = '/dashboard';
+        } catch (e) {
+            showAlert('Network error. Please try again.');
+        } finally {
+            setLoading('register-btn', false);
+        }
+    }
+
+    /* ── Enter key support ── */
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        if (document.getElementById('panel-login').classList.contains('active')) handleLogin();
+        else handleRegister();
+    });
+
+    /* ── Redirect if already logged in ── */
+    if (localStorage.getItem('ft_token')) {
+        window.location.href = '/dashboard';
+    }
+</script>
+</body>
+</html>
