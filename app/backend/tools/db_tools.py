@@ -18,8 +18,7 @@ class DBTools:
 
     def log_income(self, user_id: str, amount: float, date: str, description: str = "") -> str:
         success = self.db_obj.add_income(
-            user_id=user_id, amount=amount,
-            date=date, description=description
+            user_id=user_id, amount=amount,date=date, description=description
         )
         if success:
             return f"Income of ${amount} ({description or 'income'}) on {date} saved."
@@ -27,8 +26,11 @@ class DBTools:
 
     def log_expense(self, user_id: str, amount: float, category: str, description: str, date: str) -> str:
         success = self.db_obj.add_expense(
-            user_id=user_id, amount=amount,
-            category=category, description=description, date=date
+            user_id=user_id,
+            amount=amount,
+            category=category.lower(),
+            description=description,
+            date=date
         )
         if success:
             balance = self.get_balance_data(user_id)
@@ -61,12 +63,14 @@ class DBTools:
         """Return (year, month, start_day, end_day, today) all as strings."""
         year, month, day = str(date.today()).split('-')
         last_day = calendar.monthrange(int(year), int(month))[1]
-        return year, month, '1', str(last_day), day
+        return year, month, '01', str(last_day), day
 
     def get_total_income(self, user_id: int) -> dict:
-        year, month, _, _, _ = self.get_current_month_date_range()
+        year, month, start_day, end_day, _ = self.get_current_month_date_range()
         # month is already zero-padded from date.today() e.g. '07'
-        row = self.db_obj.get_total_income_in_month(user_id=user_id, year=year, month=month)
+        start_date = f"{year}-{month}-{start_day}"
+        end_date= f"{year}-{month}-{end_day}"
+        row = self.db_obj.get_total_income_in_month(user_id=user_id, start_date=start_date,end_date=end_date)
         return {
             "total_income": float(row["total_income"]) if row and row["total_income"] else 0.0,
             "last_updated": row["last_updated"] if row and row["last_updated"] else "Not recorded yet"
@@ -123,11 +127,84 @@ class DBTools:
             item["category"] = item["category"].lower()
         return result
 
+    def get_total_balance(self, user_id: int, start_date: str = None, end_date: str = None) -> float:
+        if start_date and end_date:
+            result = self.db_obj.get_sum_of_total_income_and_spends(
+                user_id=user_id,
+                start_date=start_date,
+                end_date=end_date,
+                getAll=False
+            )
+        else:
+            result = self.db_obj.get_sum_of_total_income_and_spends(
+                user_id=user_id,
+                getAll=True
+            )
+
+        if not result or len(result) < 2:
+            return 0.0
+
+        total_income = result[0]['total_income'] or 0.0
+        total_spent = result[1]['total_income'] or 0.0
+        return total_income + total_spent
+
+    def get_categorized_total_spends_by_date(self, user_id: int, start_date: str, end_date: str):
+        result = self.db_obj.get_total_spends_by_date(
+            user_id=user_id, start_date=start_date, end_date=end_date
+        )
+        if not result:
+            return []
+        total_spent, _ = self._calculate_total_expenses(user_id, start_date, end_date)
+        if total_spent == 0:
+            return result
+
+        pct_sum = 0.0
+        for item in result:
+            item["percentage"] = round((item["total_cost"] / total_spent) * 100, 2)
+            pct_sum += item["percentage"]
+            item["category"] = item["category"].lower()
+
+        diff = round(100 - pct_sum, 2)
+        if result:
+            result[-1]["percentage"] = round(result[-1]["percentage"] + diff, 2)
+
+    def get_spends_percentage_by_date(self,user_id, start_date, end_date):
+        # fetch categorised spending
+        result = self.db_obj.get_total_spends_by_date(
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        if not result:
+            return []
+
+        # calculate total
+        total_spends = sum(float(r["total_spends"]) for r in result)
+
+        if total_spends == 0:
+            return result
+
+        # calculate percentages
+        pct_sum = 0.0
+        for r in result:
+            r["percentage"] = round((float(r["total_spends"]) / total_spends) * 100, 2)
+            pct_sum += r["percentage"]
+
+        # fix floating point rounding — add/subtract diff from largest category
+        max_index = max(range(len(result)), key=lambda i: result[i]["percentage"])
+        diff = round(100 - pct_sum, 2)
+        result[max_index]["percentage"] = round(result[max_index]["percentage"] + diff, 2)
+
+        return result
+
+
+
     # ------------------------------------------------------------------ #
     #  LLM tool router                                                     #
     # ------------------------------------------------------------------ #
 
-    def tool_handler(self, user_id: int, tool_name: str, args: dict) -> str:
+    def tool_handler(self, user_id: str, tool_name: str, args: dict) -> str:
         if tool_name == "log_income":
             return self.log_income(
                 user_id,

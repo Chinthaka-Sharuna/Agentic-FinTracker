@@ -1,6 +1,8 @@
 import sqlite3 as sqli
 import threading
 
+from traits.trait_types import false
+
 
 class DatabaseManager:
     """
@@ -164,7 +166,7 @@ class DatabaseManager:
             "description": description, "date": date
         })
 
-    def get_total_income_in_month(self, user_id: int, year: str, month: str) -> dict | None:
+    def get_total_income_in_month(self, user_id: int, start_date: str, end_date: str) -> dict | None:
         """
         year  — 4-digit string e.g. '2026'
         month — zero-padded 2-digit string e.g. '07'
@@ -172,11 +174,9 @@ class DatabaseManager:
         sql = """
             SELECT SUM(amount) AS total_income, MAX(created_at) AS last_updated
             FROM income
-            WHERE user_id = :user_id
-              AND strftime('%Y', date) = :year
-              AND strftime('%m', date) = :month;
+            WHERE user_id = :user_id AND (date BETWEEN :start_date AND :end_date);
         """
-        return self._fetch(sql, {"user_id": user_id, "year": year, "month": month}, fetch_all=False)
+        return self._fetch(sql, {"user_id": user_id, "start_date": start_date, "end_date": end_date}, fetch_all=False)
 
     def get_all_income(self, user_id: int, start_date: str = None, end_date: str = None) -> list:
         if start_date and end_date:
@@ -296,3 +296,43 @@ class DatabaseManager:
             "DELETE FROM income WHERE id = :id AND user_id = :user_id;",
             {"id": income_id, "user_id": user_id}
         )
+
+    def get_sum_of_total_income_and_spends(self, user_id: int, start_date: str = None,end_date: str = None, getAll: bool = False) -> list:
+        if getAll:
+            sql = """
+                  SELECT COALESCE(SUM(amount), 0) AS total_income
+                  FROM income
+                  WHERE user_id = :user_id
+                  UNION ALL
+                  SELECT COALESCE(SUM(-1 * amount), 0) AS total_income
+                  FROM expenses
+                  WHERE user_id = :user_id
+                  """
+            result = self._fetch(sql, {"user_id": user_id})
+        else:
+            sql = """
+                  SELECT COALESCE(SUM(amount), 0) AS total_income
+                  FROM income
+                  WHERE user_id = :user_id AND date BETWEEN :start_date AND :end_date
+                  UNION ALL
+                  SELECT COALESCE(SUM(-1 * amount), 0) AS total_income
+                  FROM expenses
+                  WHERE user_id = :user_id AND date BETWEEN :start_date AND :end_date
+                  """
+            result = self._fetch(sql, {
+                "user_id": user_id,
+                "start_date": start_date,
+                "end_date": end_date
+            })
+        return result if result else []
+
+
+    def get_total_spends_by_date(self, user_id: int, start_date: str, end_date: str) -> list:
+        sql = """
+            SELECT date, SUM(amount) AS total_spends
+            FROM expenses
+            WHERE user_id = :user_id AND date BETWEEN :start_date AND :end_date
+            GROUP BY date
+            ORDER BY date ASC;
+        """
+        return self._fetch(sql, {"user_id": user_id, "start_date": start_date, "end_date": end_date}) or []
