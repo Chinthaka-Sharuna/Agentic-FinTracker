@@ -5,16 +5,15 @@ var openingBalance = 0;
 var activeMonth = 'all';
 var searchTerm = '';
 
-// DOM refs
-const txCount       = document.getElementById('tx-count');
-const txTotalCredit = document.getElementById('tx-total-credit');
-const txTotalDebit  = document.getElementById('tx-total-debit');
-const txNet         = document.getElementById('tx-net');
-const txPanelSub    = document.getElementById('tx-panel-sub');
-const monthFilter   = document.getElementById('month-filter');
-const tbody         = document.getElementById('tx-tbody');
-const txEmpty       = document.getElementById('tx-empty');
-const txSearch      = document.getElementById('tx-search');
+var txCount       = null;
+var txTotalCredit = null;
+var txTotalDebit  = null;
+var txNet         = null;
+var txPanelSub    = null;
+var monthFilter   = null;
+var tbody         = null;
+var txEmpty       = null;
+var txSearch      = null;
 
 
 // ─── Update functions ─────────────────────────────────────────────────────────
@@ -146,15 +145,24 @@ function getFilteredTransactions() {
 }
 
 
-// ─── Event listeners ─────────────────────────────────────────────────────────
-
-monthFilter.addEventListener('change', (e) => { activeMonth = e.target.value; updateTransactionsPage(); });
-txSearch.addEventListener('input',    (e) => { searchTerm  = e.target.value.trim().toLowerCase(); updateTransactionsPage(); });
 
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
+    txCount       = document.getElementById('tx-count');
+    txTotalCredit = document.getElementById('tx-total-credit');
+    txTotalDebit  = document.getElementById('tx-total-debit');
+    txNet         = document.getElementById('tx-net');
+    txPanelSub    = document.getElementById('tx-panel-sub');
+    monthFilter   = document.getElementById('month-filter');
+    tbody         = document.getElementById('tx-tbody');
+    txEmpty       = document.getElementById('tx-empty');
+    txSearch      = document.getElementById('tx-search');
+
+    monthFilter.addEventListener('change', (e) => { activeMonth = e.target.value; updateTransactionsPage(); });
+    txSearch.addEventListener('input',    (e) => { searchTerm  = e.target.value.trim().toLowerCase(); updateTransactionsPage(); });
+
     colorMap = {
         food:          { color: '#F97316', bg: '#FFEDD5' },
         transport:     { color: '#0EA5E9', bg: '#E0F2FE' },
@@ -173,7 +181,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // authFetch is defined in base.html — adds token + handles 401
-        const res = await authFetch('/api/transactions');
+        const res = await authFetch('/api/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ start_date: startStr, end_date: endStr })
+        });
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         const data = await res.json();
 

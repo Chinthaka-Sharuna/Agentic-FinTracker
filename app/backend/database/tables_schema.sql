@@ -51,9 +51,29 @@ CREATE TABLE IF NOT EXISTS expenses (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Goals table
+CREATE TABLE IF NOT EXISTS goals (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id         INTEGER NOT NULL,
+    title           TEXT    NOT NULL,
+    category        TEXT    NOT NULL,
+    target_amount   REAL    NOT NULL,
+    saved_amount    REAL    DEFAULT 0.0,
+    deadline        TEXT    NOT NULL,   -- YYYY-MM-DD
+    status          TEXT    NOT NULL DEFAULT 'on-track' CHECK(status IN ('on-track', 'at-risk', 'achieved', 'not-feasible')),
+    notes           TEXT,
+    expense_id      INTEGER,            -- linked expense if goal is tied to a specific transaction
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)   REFERENCES users(id)    ON DELETE CASCADE,
+    FOREIGN KEY (expense_id) REFERENCES expenses(id) ON DELETE SET NULL
+);
+
 -- Indexes for fast per-user queries
 CREATE INDEX IF NOT EXISTS idx_income_user_date    ON income(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date  ON expenses(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_chat_user           ON chat_history(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_user       ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires    ON sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_goals_user    ON goals(user_id);
+CREATE INDEX IF NOT EXISTS idx_goals_status  ON goals(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_goals_deadline ON goals(user_id, deadline);

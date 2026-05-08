@@ -4,22 +4,22 @@ const date = today.toDateString().split(' ');
 var colorMap = null;
 
 // DOM refs
-const billingDate               = document.getElementById('billing-date');
-const remainingBalance          = document.getElementById('remaining-balance');
-const remainingBalancePercentage = document.getElementById('remaining-balance-percentage');
-const spentAmount               = document.getElementById('spent-amount');
-const spentPercentage           = document.getElementById('spent-percentage');
-const incomeAmount              = document.getElementById('income-amount');
-const incomeMonthName           = document.getElementById('income-month-name');
-const lastLoggedIncomeDate      = document.getElementById('last-logged-income-date');
-const totalBalance              = document.getElementById('account-total-balance');
-const totalBalancePercentageChange = document.getElementById('total-balance-percentage-change');
-const pieChartMonth             = document.getElementById('pie-chart-month-name');
-const pieChartCanvas            = document.getElementById('pie-chart-month');
-const recentTransactionHistory  = document.getElementById('recent-transaction-history');
-const headingDateLine           = document.getElementById('heading-date-line');
-const welcomeMessage            = document.getElementById('welcome-message');
-const progressBar               = document.getElementById("progress-fill")
+var billingDate                = null;
+var remainingBalance           = null;
+var remainingBalancePercentage = null;
+var spentAmount                = null;
+var spentPercentage            = null;
+var incomeAmount               = null;
+var incomeMonthName            = null;
+var lastLoggedIncomeDate       = null;
+var totalBalance               = null;
+var totalBalancePercentageChange = null;
+var pieChartMonth              = null;
+var pieChartCanvas             = null;
+var recentTransactionHistory   = null;
+var headingDateLine            = null;
+var welcomeMessage             = null;
+var progressBar                = null;
 
 
 // ─── Update functions ─────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ function updateSpentCard(amount, income) {
     spentPercentage.textContent = `${spentPercentageNum}% used`;
     let fmt = priceFormatter(amount).split('.');
     spentAmount.innerHTML = `${fmt[0]}<span class="cents">.${fmt[1]}</span>`;
-    progressBar.style.width=`spentPercentageNum%`
+    progressBar.style.width=`${spentPercentageNum}%`
 }
 
 function updateIncomeCard(amount, lastLoggedDate) {
@@ -48,7 +48,8 @@ function updateIncomeCard(amount, lastLoggedDate) {
 }
 
 function updateTotalBalanceCard(totalBalanceAmount, percentageChange) {
-    totalBalance.textContent = priceFormatter(totalBalanceAmount || 0);
+    let fmt = priceFormatter(totalBalanceAmount || 0.00).split('.');
+    totalBalance.innerHTML = `${fmt[0]}<span class="cents">.${fmt[1]}</span>`;
     if (percentageChange > 0) {
         totalBalancePercentageChange.textContent = `↑ ${percentageChange}%`;
         totalBalancePercentageChange.classList.replace('down', 'up');
@@ -163,6 +164,23 @@ function prepareChartData(categories) {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
+    billingDate                = document.getElementById('billing-date');
+    remainingBalance           = document.getElementById('remaining-balance');
+    remainingBalancePercentage = document.getElementById('remaining-balance-percentage');
+    spentAmount                = document.getElementById('spent-amount');
+    spentPercentage            = document.getElementById('spent-percentage');
+    incomeAmount               = document.getElementById('income-amount');
+    incomeMonthName            = document.getElementById('income-month-name');
+    lastLoggedIncomeDate       = document.getElementById('last-logged-income-date');
+    totalBalance               = document.getElementById('account-total-balance');
+    totalBalancePercentageChange = document.getElementById('total-balance-percentage-change');
+    pieChartMonth              = document.getElementById('pie-chart-month-name');
+    pieChartCanvas             = document.getElementById('pie-chart-month');
+    recentTransactionHistory   = document.getElementById('recent-transaction-history');
+    headingDateLine            = document.getElementById('heading-date-line');
+    welcomeMessage             = document.getElementById('welcome-message');
+    progressBar                = document.getElementById("progress-fill");
+
     colorMap = {
         "food":          { color: '#F97316', bg: '#FFEDD5' },
         "transport":     { color: '#0EA5E9', bg: '#E0F2FE' },
@@ -179,7 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // authFetch is defined in base.html
-    authFetch('/api/dashboard')
+    authFetch('/api/dashboard', {
+        method: 'POST'
+    })
         .then(res => {
             if (!res.ok) throw new Error('Could not fetch dashboard data');
             return res.json();

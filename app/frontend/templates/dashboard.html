@@ -9,7 +9,7 @@
             <h1 id="welcome-message">Welcome back, <span>John</span>.</h1>
         </div>
         <div class="header-actions">
-            <div class="search">
+            <div class="search" style="visibility: hidden;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input type="text" placeholder="Search transactions..." />
             </div>
@@ -62,7 +62,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <h3>Recent Transactions</h3>
-                    <a href="#" class="see-all">See all</a>
+                    <a href="{{url_for('load_transactions')}}" class="see-all">See all</a>
                 </div>
                 <ul class="tx-list" id="recent-transaction-history">
                     <li>
@@ -107,9 +107,6 @@
                 </div>
                 <div class="breakdown">
                     <canvas id="pie-chart-month" width="400" height="400"></canvas>
-                </div>
-                <div class="insight">
-                    <strong>Insight:</strong> Rent is 93% of this month's spending. You're tracking well below budget.
                 </div>
             </div>
         </div>

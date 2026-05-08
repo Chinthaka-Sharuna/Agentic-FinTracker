@@ -21,6 +21,17 @@ var isMaximized = false;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;  // 10 MB
 
 
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+
+function renderMarkdown(text) {
+    if (typeof marked !== 'undefined') {
+        const html = marked.parse(text);
+        return typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : html;
+    }
+    return escapeHTML(text);  // fallback if marked not loaded
+}
+
+
 // ─── Toggle / open / close ────────────────────────────────────────────────────
 
 function toggleChat() {
@@ -79,10 +90,11 @@ function appendUserMessage(text, file) {
     scrollToBottom();
 }
 
-function appendBotMessage(html) {
+function appendBotMessage(text) {
+    // render bot replies as markdown
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="chat-msg bot">
-            <div class="chat-bubble">${html}</div>
+            <div class="chat-bubble markdown-body">${renderMarkdown(text)}</div>
         </div>`);
     scrollToBottom();
 }
@@ -170,7 +182,7 @@ function handleSendMessage() {
     sendToBot(text, fileSnapshot)
         .then(reply => {
             hideTypingIndicator();
-            appendBotMessage(escapeHTML(reply));
+            appendBotMessage(reply);  // pass raw text — renderMarkdown called inside
         })
         .catch(err => {
             hideTypingIndicator();
@@ -183,7 +195,6 @@ async function sendToBot(text, file) {
     formData.append('message', text);
     if (file) formData.append('file', file);
 
-    // authFetch is defined in base.html — adds Bearer token and handles 401
     const res = await authFetch('/api/chat', { method: 'POST', body: formData });
     if (!res.ok) throw new Error('Chat service unavailable');
     const data = await res.json();
@@ -191,15 +202,13 @@ async function sendToBot(text, file) {
 }
 
 
-// ─── Reset — calls server to clear DB history ────────────────────────────────
+// ─── Reset ────────────────────────────────────────────────────────────────────
 
 async function handleResetChat() {
     if (!confirm('Clear the conversation? This will erase your full chat history.')) return;
-
     try {
         await authFetch('/api/chat/clear', { method: 'DELETE' });
     } catch (_) {}
-
     chatMessages.innerHTML = `
         <div class="chat-msg bot">
             <div class="chat-bubble">Hello! I'm your financial assistant. Ask me about your balance, expenses, or upload a PDF bank statement to analyze.</div>
@@ -208,7 +217,7 @@ async function handleResetChat() {
 }
 
 
-// ─── Load history from DB on open ────────────────────────────────────────────
+// ─── Load history from DB ─────────────────────────────────────────────────────
 
 async function loadHistoryFromServer() {
     try {
@@ -217,9 +226,9 @@ async function loadHistoryFromServer() {
         const data = await res.json();
         const history = data.history || [];
 
-        if (history.length === 0) return;  // keep welcome message
+        if (history.length === 0) return;
 
-        chatMessages.innerHTML = '';   // clear welcome message
+        chatMessages.innerHTML = '';
         for (const msg of history) {
             if (msg.role === 'user') {
                 chatMessages.insertAdjacentHTML('beforeend', `
@@ -227,15 +236,16 @@ async function loadHistoryFromServer() {
                         <div class="chat-bubble">${escapeHTML(msg.content)}</div>
                     </div>`);
             } else if (msg.role === 'assistant') {
+                // render history bot messages as markdown too
                 chatMessages.insertAdjacentHTML('beforeend', `
                     <div class="chat-msg bot">
-                        <div class="chat-bubble">${escapeHTML(msg.content)}</div>
+                        <div class="chat-bubble markdown-body">${renderMarkdown(msg.content)}</div>
                     </div>`);
             }
         }
         scrollToBottom();
     } catch (_) {
-        // Silently fail — welcome message stays visible
+        // silently fail — welcome message stays
     }
 }
 
@@ -261,9 +271,10 @@ function scrollToBottom() {
 
 function activateNavLink() {
     const title = document.title.toLowerCase().split(' - ')[0];
-    if (title.includes('dashboard'))    document.getElementById('nav-dashboard')?.classList.add('active');
+    if (title.includes('dashboard'))         document.getElementById('nav-dashboard')?.classList.add('active');
     else if (title.includes('transactions')) document.getElementById('nav-transactions')?.classList.add('active');
-    else if (title.includes('budgets'))  document.getElementById('nav-budgets')?.classList.add('active');
+    else if (title.includes('budgets'))      document.getElementById('nav-budgets')?.classList.add('active');
+    else if (title.includes('goals')) document.getElementById('nav-goals')?.classList.add('active');
 }
 
 
@@ -289,7 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!chatPanel) return;
 
-    // Load DB-persisted history (replaces sessionStorage approach)
     loadHistoryFromServer();
 
     chatToggle.addEventListener('click', toggleChat);

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Goals - FinTracker{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/goals.css') }}">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <p class="date-line">Financial Goals</p>
+        <h1>Your <span>Goals</span>.</h1>
+    </div>
+    <div class="header-actions">
+        <button class="cta-btn" id="add-goal-btn">+ New Goal</button>
+    </div>
+</header>
+
+<section class="dashboard-content">
+
+    <!-- Summary Strip -->
+    <div class="goals-summary-strip">
+        <div class="goals-summary-item">
+            <span class="goals-summary-label">Total Goals</span>
+            <span class="goals-summary-value" id="total-goals">0</span>
+        </div>
+        <div class="goals-summary-item">
+            <span class="goals-summary-label">On Track</span>
+            <span class="goals-summary-value good" id="goals-on-track">0</span>
+        </div>
+        <div class="goals-summary-item">
+            <span class="goals-summary-label">At Risk</span>
+            <span class="goals-summary-value warn" id="goals-at-risk">0</span>
+        </div>
+        <div class="goals-summary-item">
+            <span class="goals-summary-label">Total Target</span>
+            <span class="goals-summary-value" id="goals-total-target">$0</span>
+        </div>
+        <div class="goals-summary-item">
+            <span class="goals-summary-label">Total Saved</span>
+            <span class="goals-summary-value" id="goals-total-saved">$0</span>
+        </div>
+    </div>
+
+    <!-- Goals Grid -->
+    <div class="goals-grid" id="goals-grid">
+        <!-- populated by JS -->
+    </div>
+
+    <!-- Empty State -->
+    <div class="goals-empty" id="goals-empty" style="display:none;">
+        <div class="goals-empty-icon">🎯</div>
+        <p class="goals-empty-title">No goals yet</p>
+        <p class="goals-empty-sub">Set a financial goal and track your progress towards it.</p>
+        <button class="cta-btn" onclick="openAddGoalModal()">+ Create your first goal</button>
+    </div>
+
+</section>
+
+<!-- Add / Edit Goal Modal -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="goal-modal">
+        <div class="modal-header">
+            <h3 id="modal-title">New Goal</h3>
+            <button class="modal-close" id="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Goal Title</label>
+                <input type="text" class="form-input" id="goal-title" placeholder="e.g. Emergency Fund, New Laptop" />
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Target Amount</label>
+                    <input type="number" class="form-input" id="goal-target" placeholder="0.00" min="0" step="0.01" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Already Saved</label>
+                    <input type="number" class="form-input" id="goal-saved" placeholder="0.00" min="0" step="0.01" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Deadline</label>
+                <input type="date" class="form-input" id="goal-deadline" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" id="goal-category">
+                    <option value="savings">💰 Savings</option>
+                    <option value="travel">✈️ Travel</option>
+                    <option value="education">📚 Education</option>
+                    <option value="home">🏠 Home</option>
+                    <option value="vehicle">🚗 Vehicle</option>
+                    <option value="health">❤️ Health</option>
+                    <option value="tech">💻 Tech</option>
+                    <option value="other">🎯 Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes <span style="color:var(--ink-muted);font-weight:400;">(optional)</span></label>
+                <textarea class="form-input" id="goal-notes" placeholder="Any notes about this goal..." rows="2"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-cancel" id="modal-cancel">Cancel</button>
+            <button class="cta-btn" id="modal-save">Save Goal</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module" src="{{ url_for('static', filename='js/goals.js') }}"></script>
+{% endblock %}
