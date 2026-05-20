@@ -1,5 +1,14 @@
-from app.backend.models.chatbot import Chatbot
-from config.config import Config
+"""
+Main entry point for Agentic FinTracker.
+
+Can run with either Gradio UI or Flask backend:
+- Gradio: python main.py gradio
+- Flask: python app_flask.py
+"""
+
+import sys
+from app.backend.agents.chatbot import Chatbot
+from app.config.config import Config
 from app.frontend.gradio_ui import ChatBotUI
 from app.backend.database.db_manager import DatabaseManager
 from app.backend.tools.db_tools import DBTools
@@ -19,9 +28,19 @@ def chat(message, history, pdf_file=None):
     return chatbot.send_message(message),gr.update()
 
 
-db = DatabaseManager(Config.DATABASE_PATH)
-db_tools = DBTools(database_obj=db)
-tools = db_tools.functions_formatter()
-chatbot = Chatbot(api_key=Config.API_KEY, tools_obj=db_tools, system_prompt=Config.chat_bot_system_prompt, pdf_to_text_system_prompt=Config.pdf_extractor_system_prompt)
-chatbot_UI = ChatBotUI(chat_function=chat)
-chatbot_UI.lanuch_chat_UI()
+if __name__ == "__main__":
+    db = DatabaseManager(Config.DATABASE_PATH)
+    db_tools = DBTools(database_obj=db)
+    tools = db_tools.functions_formatter()
+    chatbot = Chatbot(
+        api_key=Config.API_KEY,
+        tools_obj=db_tools,
+        system_prompt=Config.CHAT_BOT_SYSTEM_PROMPT,
+        pdf_to_text_system_prompt=Config.PDF_EXTRACTOR_SYSTEM_PROMPT
+    )
+    
+    # Run Gradio UI by default
+    print("Starting Agentic FinTracker with Gradio UI...")
+    print("For Flask backend, run: python app_flask.py")
+    chatbot_UI = ChatBotUI(chat_function=chat)
+    chatbot_UI.lanuch_chat_UI()

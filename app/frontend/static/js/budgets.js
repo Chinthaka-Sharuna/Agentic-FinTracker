@@ -113,6 +113,7 @@ function updateBarChart(catagaried_by_date) {
             }
         }
     });
+
     const totalSpent = total_cost.reduce((sum, d) => sum + d, 0);
     const avgPerDay      = total_cost.length > 0 ? totalSpent / total_cost.length : 0;
     totalEl.textContent  = priceFormatter(totalSpent);

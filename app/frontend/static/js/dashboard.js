@@ -40,9 +40,15 @@ function updateSpentCard(amount, income) {
 }
 
 function updateIncomeCard(amount, lastLoggedDate) {
-    const formattedDate = new Date(lastLoggedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-    incomeMonthName.textContent = `${date[1]} Income`;
+    // guard against invalid or missing date
+    const dateObj = new Date(lastLoggedDate);
+    const formattedDate = isNaN(dateObj.getTime())
+        ? 'Not recorded yet'
+        : dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+
+    incomeMonthName.textContent      = `${date[1]} Income`;
     lastLoggedIncomeDate.textContent = `Logged ${formattedDate}`;
+
     let fmt = priceFormatter(amount).split('.');
     incomeAmount.innerHTML = `${fmt[0]}<span class="cents">.${fmt[1]}</span>`;
 }
@@ -63,7 +69,19 @@ function updateTotalBalanceCard(totalBalanceAmount, percentageChange) {
 }
 
 function updatePieChartCard(data, elementId) {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+        pieChartMonth.textContent = date[1].toUpperCase();
+        elementId.parentElement.innerHTML = `
+            <div style="
+                display:flex;flex-direction:column;align-items:center;
+                justify-content:center;padding:40px 20px;gap:8px;text-align:center;
+            ">
+                <div style="font-size:32px;">📊</div>
+                <p style="font-size:14px;font-weight:600;color:var(--ink);margin:0;">No spending data</p>
+                <p style="font-size:12px;color:var(--ink-muted);margin:0;">Your spending breakdown will appear here once you log some expenses.</p>
+            </div>`;
+        return;
+    }
     pieChartMonth.textContent = date[1].toUpperCase();
     const chartData = prepareChartData(data);
     Chart.register(ChartDataLabels);
@@ -92,10 +110,10 @@ function updatePieChartCard(data, elementId) {
 }
 
 function updateGreeting() {
-    // Pull the real username from localStorage (set at login)
     const user = JSON.parse(localStorage.getItem('ft_user') || '{}');
-    const name = user.username ? capitalize(user.username) : 'there';
-    welcomeMessage.innerHTML = `Welcome back, <span>${name}</span>.`;
+    const fullName = user.username || 'there';
+    const firstName = fullName.split(' ')[0];
+    welcomeMessage.innerHTML = `Welcome back, <span>${capitalize(firstName)}</span>.`;
 }
 
 function updateDateLine() {
@@ -105,6 +123,21 @@ function updateDateLine() {
 
 function updateRecentTransactions(transactions) {
     recentTransactionHistory.innerHTML = '';
+
+    if (!transactions || transactions.length === 0) {
+        recentTransactionHistory.innerHTML = `
+            <li style="
+                display:flex;flex-direction:column;align-items:center;
+                justify-content:center;padding:40px 20px;gap:8px;text-align:center;
+                list-style:none;
+            ">
+                <div style="font-size:32px;">📭</div>
+                <p style="font-size:14px;font-weight:600;color:var(--ink);margin:0;">No transactions yet</p>
+                <p style="font-size:12px;color:var(--ink-muted);margin:0;">Log an expense or upload a bank statement to get started.</p>
+            </li>`;
+        return;
+    }
+
     const slice = transactions.length > 9 ? transactions.slice(0, 9) : transactions;
     slice.forEach(tx => {
         const category = capitalize(tx.category);

@@ -1,24 +1,25 @@
 import calendar
 import uuid
 from datetime import date, datetime, timedelta
-
 from flask import Flask, request, jsonify, render_template, g
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app import Config, DatabaseManager, DBTools, Chatbot, PDFExtractor
+from app import Config, DatabaseManager, DBTools, Chatbot, PDFExtractor,GoalRiskScorer,Tools
 
-
+goal_risk_scorer=GoalRiskScorer(api_key=Config.API_KEY)
 db_manager = DatabaseManager(Config.DATABASE_PATH)
 db_manager.execute_script(Config.TABLES_SCRIPT)
 
-db_tools = DBTools(db_manager)
+db_tools = DBTools(db_manager,goal_risk_scorer)
+tools=Tools(db_tools_obj=db_tools)
 
 chatbot = Chatbot(
     api_key=Config.API_KEY,
     base_url=Config.CHAT_BOT_BASE_URL,
     model=Config.CHAT_BOT_MODEL,
     system_prompt=Config.CHAT_BOT_SYSTEM_PROMPT,
-    tools_obj=db_tools,
+    tools_obj=tools,
+    save_msg=db_manager.save_chat_message
 )
 
 pdf_extractor = PDFExtractor(
@@ -26,6 +27,10 @@ pdf_extractor = PDFExtractor(
     base_url=Config.PDF_EXTRACTOR_BASE_URL,
     model=Config.PDF_EXTRACTOR_MODEL,
     system_prompt=Config.PDF_EXTRACTOR_SYSTEM_PROMPT
+)
+
+goal_risk_scorer=GoalRiskScorer(
+    api_key=Config.API_KEY
 )
 
 app = Flask(__name__, static_folder=Config.APP_STATIC, template_folder=Config.APP_TEMPLATES)
@@ -96,6 +101,10 @@ def load_budgets():
 @app.route("/transactions")
 def load_transactions():
     return render_template("transactions.html")
+
+@app.route("/goals")
+def load_goals():
+    return render_template("goals.html")
 
 
 
@@ -232,22 +241,49 @@ def clear_chat():
 # -------------------------------------
 # api endpoint for dashboard page
 # -------------------------------------
-@app.route("/api/dashboard", methods=["GET"])
+@app.route("/api/dashboard", methods=["POST"])
 @require_auth
 def update_dashboard():
     """Get live dashboard data for the current user."""
     try:
         year, month, start_day, end_day, today = db_tools.get_current_month_date_range()
+
+        year_int = int(year)
+        month_int = int(month)
+
         start_date = f"{year}-{month}-01"
-        end_date   = f"{year}-{month}-{today}"
-        print("\n start date: ", start_date)
-        print("end date: ", end_date)
-        print(g.user_id)
-        salary_data      = db_tools.get_total_income(g.user_id)
-        total_income     = salary_data["total_income"]
-        spent            = db_tools.get_spent(g.user_id)
+        end_date = f"{year}-{month}-{today}"
+
+        salary_data = db_tools.get_total_income(g.user_id)
+        total_income = salary_data["total_income"]
+        spent = db_tools.get_spent(g.user_id)
         categorized_data = db_tools.get_categorized_summary(g.user_id, start_date, end_date)
-        transactions     = db_tools.get_transactions(g.user_id, start_date, end_date)
+        transactions = db_tools.get_transactions(g.user_id, start_date, end_date)
+        total_balance = db_tools.get_total_balance(user_id=g.user_id)
+
+        # last month — handle January correctly
+        if month_int > 1:
+            last_year, last_month = year_int, month_int - 1
+        else:
+            last_year, last_month = year_int - 1, 12
+
+        last_month_last_day = calendar.monthrange(last_year, last_month)[1]
+        last_month_start = f"{last_year}-{last_month:02d}-01"
+        last_month_end = f"{last_year}-{last_month:02d}-{last_month_last_day}"
+
+        last_month_balance = db_tools.get_total_balance(
+            user_id=g.user_id,
+            start_date=last_month_start,
+            end_date=last_month_end
+        )
+        current_month_balance = total_income - spent
+
+        if last_month_balance != 0:
+            total_balance_percentage_change = round(
+                ((current_month_balance - last_month_balance) / last_month_balance) * 100, 2
+            )
+        else:
+            total_balance_percentage_change = 0.0
 
         return jsonify({
             "currency_unit": "USD",
@@ -256,7 +292,9 @@ def update_dashboard():
             "summary": {
                 "total_income":      total_income,
                 "spent_amount":      spent,
-                "remaining_budget":  total_income - spent,
+                "remaining_budget":  current_month_balance,
+                "total_balance": total_balance,
+                "total_balance_percentage_change":total_balance_percentage_change
             },
             "category":             categorized_data,
             "transaction_history":  transactions,
@@ -268,7 +306,7 @@ def update_dashboard():
 # -------------------------------------
 # api end point for transactions page
 # -------------------------------------
-@app.route("/api/transactions", methods=["GET"])
+@app.route("/api/transactions", methods=["POST"])
 @require_auth
 def get_transactions():
     """
@@ -290,121 +328,128 @@ def get_transactions():
                 transactions = db_manager.get_all_transactions(g.user_id, start_date, end_date)
             except (ValueError, IndexError):
                 transactions = []
-
         return jsonify({"transactions": transactions, "count": len(transactions)}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-# -------------------------------------
-# api endpoints for mannual operation
-# -------------------------------------
-
-@app.route("/api/add-expense", methods=["POST"])
-@require_auth
-def add_expense():
-    try:
-        data        = request.get_json() or {}
-        amount      = float(data.get("amount", 0))
-        category    = data.get("category", "").strip()
-        description = data.get("description", "").strip()
-        expense_date = data.get("date", str(date.today()))
-
-        if not amount or not category:
-            return jsonify({"error": "Amount and category required"}), 400
-
-        success = db_manager.add_expense(
-            user_id=g.user_id, amount=amount,
-            category=category, description=description, date=expense_date
-        )
-
-        if success:
-            return jsonify({"message": "Expense added successfully"}), 201
-        return jsonify({"error": "Failed to add expense"}), 500
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/set-salary", methods=["POST"])
-@require_auth
-def set_salary():
-    try:
-        data        = request.get_json() or {}
-        amount      = float(data.get("amount", 0))
-        month       = data.get("month", "").strip()
-        year        = int(data.get("year", date.today().year))
-        description = data.get("description", "").strip()
-
-        if not amount or not month:
-            return jsonify({"error": "Amount and month required"}), 400
-
-        success = db_manager.add_income(
-            user_id=g.user_id, amount=amount,
-            month=month, year=year, description=description
-        )
-
-        if success:
-            return jsonify({"message": "Income logged successfully"}), 201
-        return jsonify({"error": "Failed to log income"}), 500
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/delete-expense/<int:expense_id>", methods=["DELETE"])
-@require_auth
-def delete_expense(expense_id: int):
-    """Delete an expense that belongs to the current user."""
-    success = db_manager.delete_expense(user_id=g.user_id, expense_id=expense_id)
-    if success:
-        return jsonify({"message": "Expense deleted"}), 200
-    return jsonify({"error": "Failed to delete expense"}), 500
-
-
-
-@app.route("/api/admin/cleanup-sessions", methods=["POST"])
-def cleanup_sessions():
-    """Remove expired sessions. Call this periodically (e.g. cron job)."""
-    db_manager.delete_expired_sessions()
-    return jsonify({"message": "Expired sessions removed"}), 200
-
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
-
-
 # ------------------------------------------------------------------ #
-#  Budgets endpoint                                                    #
+#  Budgets endpoint
 # ------------------------------------------------------------------ #
 
-@app.route("/api/budgets", methods=["GET"])
+@app.route("/api/budgets", methods=["POST"])
 @require_auth
 def get_budgets():
     """Get categorized spending vs income for the current month."""
     try:
         year, month, start_day, end_day, _ = db_tools.get_current_month_date_range()
-        start_date = f"{year}-{month}-{start_day}"
-        end_date   = f"{year}-{month}-{end_day}"
+        default_start = f"{year}-{month}-{int(start_day):02d}"
+        default_end = f"{year}-{month}-{int(end_day):02d}"
 
-        spending_by_category = db_manager.get_total_expenses_by_category(
-            g.user_id, start_date, end_date
+        start_date = request.args.get("start_date", default_start)
+        end_date = request.args.get("end_date", default_end)
+
+        categorized_data_by_date = db_tools.get_spends_percentage_by_date(
+            user_id=g.user_id,
+            start_date=start_date,
+            end_date=end_date
         )
-        total_income = db_tools.get_total_income(g.user_id)["total_income"]
-        total_spent  = sum(c["total_cost"] for c in (spending_by_category or []))
+        categorized_data_by_category = db_tools.get_categorized_summary(g.user_id, start_date, end_date)
 
         return jsonify({
-            "income":      total_income,
-            "total_spent": total_spent,
-            "remaining":   total_income - total_spent,
-            "categories":  spending_by_category or [],
-            "period": {
-                "month":      calendar.month_name[int(month)],
-                "year":       int(year),
-                "start_date": start_date,
-                "end_date":   end_date,
-            },
+            "currency_unit": "USD",
+            "categorized_data_by_date":categorized_data_by_date,
+            "categorized_data_by_category":categorized_data_by_category
         }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/goals", methods=["POST"])
+@require_auth
+def get_goals():
+    goals_data = db_tools.get_goals(user_id=g.user_id)
+    return jsonify({"goals": goals_data}), 200
+
+@app.route("/api/goals/create", methods=["POST"])
+@require_auth
+def create_goal():
+    data = request.get_json() or {}
+
+    goal_name = data.get("goal_name", "").strip()
+    target_amount = data.get("target_amount", 0)
+    saved_amount = data.get("saved_amount", 0)
+    deadline = data.get("deadline", "")
+    category = data.get("category", "")
+    goal_notes = data.get("goal_notes", "")
+    force_creation = data.get("force_creation", False)
+
+    result=db_tools.create_new_goal(
+        user_id=g.user_id,
+        goal_name=goal_name, target_amount=target_amount,
+        saved_amount=saved_amount, deadline=deadline,
+        category=category, goal_notes=goal_notes,
+        force_creation=force_creation
+    )
+    if result["status"]=="success":
+        return jsonify({"status": "success", "message": "Goal updated successfully"}), 200
+    elif result["status"]=="warning":
+        return jsonify({"status": "warning", "message": result["message"]}), 200
+    else:
+        return jsonify({"status": "failed", "message": result["message"]}), 400
+
+
+
+
+@app.route("/api/goals/update", methods=["POST"])
+@require_auth
+def update_goal():
+    data = request.get_json() or {}
+    reference_id = data.get("reference_id", "")
+    if not reference_id:
+        return jsonify({"error": "Reference id required"}), 400
+
+    goal_name  = data.get("goal_name", "").strip()
+    target_amount     = data.get("target_amount", 0)
+    saved_amount      = data.get("saved_amount", 0)
+    deadline   = data.get("deadline", "")
+    category   = data.get("category", "")
+    goal_notes = data.get("goal_notes", "")
+    force_creation=data.get("force_creation", False)
+
+    result=db_tools.edit_goal(
+        user_id=g.user_id, reference_id=reference_id,
+        goal_name=goal_name, target_amount=target_amount,
+        saved_amount=saved_amount, deadline=deadline,
+        category=category, goal_notes=goal_notes,
+        force_creation=force_creation
+    )
+    if result["status"]=="success":
+        return jsonify({"status": "success", "message": "Goal updated successfully"}), 200
+    elif result["status"]=="warning":
+        return jsonify({"status": "warning", "message": result["message"]}), 200
+    else:
+        return jsonify({"status": "failed", "message": result["message"]}), 400
+
+@app.route("/api/goals/delete", methods=["POST"])
+@require_auth
+def delete_goal():
+    # must implement a way to transfer money which is already in the goal before deleting it
+    data = request.get_json() or {}
+    reference_id = data.get("reference_id", "")
+    if not reference_id:
+        return jsonify({"error": "Reference id required"}), 400
+
+    success, message = db_tools.delete_goal(
+        user_id=g.user_id, reference_id=reference_id
+    )
+    if success:
+        return jsonify({"status": "success", "message": message}), 200
+    return jsonify({"status": "failed", "message": message}), 404
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

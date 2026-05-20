@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     txEmpty       = document.getElementById('tx-empty');
     txSearch      = document.getElementById('tx-search');
 
+
     monthFilter.addEventListener('change', (e) => { activeMonth = e.target.value; updateTransactionsPage(); });
     txSearch.addEventListener('input',    (e) => { searchTerm  = e.target.value.trim().toLowerCase(); updateTransactionsPage(); });
 
@@ -178,13 +179,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         salary:        { color: '#16A34A', bg: '#DCFCE7' },
         other:         { color: '#94A3B8', bg: '#F1F5F9' }
     };
-
     try {
         // authFetch is defined in base.html — adds token + handles 401
         const res = await authFetch('/api/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ start_date: startStr, end_date: endStr })
+            body: JSON.stringify({})
         });
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
         const data = await res.json();

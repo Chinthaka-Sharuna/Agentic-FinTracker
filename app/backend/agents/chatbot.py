@@ -4,7 +4,7 @@ from .base_agent import BaseAgent
 
 class Chatbot(BaseAgent):
 
-    def __init__(self,api_key: str,base_url: str = "https://api.openai.com/v1",model: str = "gpt-5-nano",system_prompt: str = "You are a helpful assistant.",tools_obj=None):
+    def __init__(self,api_key: str,base_url: str = "https://api.openai.com/v1",model: str = "gpt-5-nano",system_prompt: str = "You are a helpful assistant.",tools_obj=None,save_msg=None):
 
         """
             Conversational agent that handles user messages and tool calling.
@@ -28,8 +28,9 @@ class Chatbot(BaseAgent):
         self.conversation_history = [
             {"role": "system", "content": system_prompt}
         ]
+        self.save_msg=save_msg
 
-    def send_message(self, message: str) -> str:
+    def send_message(self, message: str,user_id:str=None) -> str:
         """
         Send a user message and get the assistant's response.
 
@@ -50,6 +51,8 @@ class Chatbot(BaseAgent):
             "role": "user",
             "content": message,
         })
+        if self.save_msg:
+            self.save_msg(role=self.conversation_history[-1]['role'],content=self.conversation_history[-1]['content'],user_id=user_id)
 
         # Get response from LLM
         tools = self.tools_obj.functions_formatter()
@@ -61,7 +64,7 @@ class Chatbot(BaseAgent):
 
         # Tool-calling loop: keep going until the LLM stops requesting tools
         while response.finish_reason == "tool_calls":
-            self._handle_tool_calls(response.message)
+            self._handle_tool_calls(response.message,user_id)
             response = self.api_call(
                 model=self.model,
                 messages=self.conversation_history,
@@ -74,10 +77,12 @@ class Chatbot(BaseAgent):
             "role": "assistant",
             "content": assistant_message,
         })
-        print(self.conversation_history)
+        # print(self.conversation_history)
+        if self.save_msg:
+            self.save_msg(role="assistant", content=assistant_message, user_id=user_id)
         return assistant_message
 
-    def _handle_tool_calls(self, message):
+    def _handle_tool_calls(self, message,user_id):
         """
         Execute all tool calls requested by the LLM and add results to history.
 
@@ -92,13 +97,16 @@ class Chatbot(BaseAgent):
         for tool_call in message.tool_calls:
             tool_name = tool_call.function.name
             args = json.loads(tool_call.function.arguments)
-            result = self.tools_obj.tool_handler(tool_name=tool_name, args=args)
+            result = self.tools_obj.tool_handler(user_id,tool_name=tool_name, args=args)
 
             tool_results.append({
                 "role": "tool",
                 "tool_call_id": tool_call.id,
                 "content": result,
             })
+            if self.save_msg:
+                self.save_msg(role="tool",content=result, user_id=user_id)
+
 
         # Add all tool results to history
         self.conversation_history.extend(tool_results)

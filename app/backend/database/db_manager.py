@@ -1,8 +1,6 @@
 import sqlite3 as sqli
 import threading
 
-from traits.trait_types import false
-
 
 class DatabaseManager:
     """
@@ -24,9 +22,13 @@ class DatabaseManager:
         with self._lock:
             cur = self.conn.cursor()
             try:
-                cur.execute(query, params)
+                result=cur.execute(query, params)
                 self.conn.commit()
-                return True
+                if result.rowcount>0:
+                    return True
+                else:
+                    print("No records found to make changes")
+                    return False
             except sqli.IntegrityError as e:
                 self.conn.rollback()
                 print(f"[DB] Integrity error: {e}")
@@ -336,3 +338,59 @@ class DatabaseManager:
             ORDER BY date ASC;
         """
         return self._fetch(sql, {"user_id": user_id, "start_date": start_date, "end_date": end_date}) or []
+
+    def get_goals(self, user_id: str,reference_id:str=None) -> list:
+        if not reference_id:
+            sql = """
+                select id as reference_id, title as goal_name, category, target_amount, saved_amount, deadline, status,notes as goal_notes
+                from goals
+                where user_id = :user_id
+                order by status desc ,saved_amount,deadline;
+            """
+            return self._fetch(sql, {"user_id": user_id}) or []
+        else:
+            sql = """
+                  select id    as reference_id,title as goal_name,category,target_amount,saved_amount,deadline,status,notes as goal_notes
+                  from goals
+                  where user_id = :user_id and id = :reference_id;
+                  """
+            return self._fetch(sql, {"user_id": user_id,"reference_id":reference_id}) or []
+
+    def get_goals_by_status(self, user_id: str, status:str) -> list:
+        sql = """
+              select id    as reference_id,title as goal_name,category,target_amount,saved_amount,deadline,status,notes as goal_notes
+              from goals
+              where user_id = :user_id and status = :status;
+              """
+        return self._fetch(sql, {"user_id": user_id, "status": status}) or []
+
+    def delete_goal(self, user_id: str, reference_id: str) -> bool:
+        sql="""
+            delete from goals where id = :reference_id and user_id = :user_id;
+        """
+        return self._write(sql, {"reference_id": reference_id, "user_id": user_id})
+
+    def create_goal(self, user_id: str, goal_name: str, category: str, target_amount: float,saved_amount:float, deadline: str, goal_notes: str,status:str) -> bool:
+        sql = """
+            insert into goals (user_id, title, category, target_amount, saved_amount, deadline, status, notes)
+            values (:user_id, :goal_name, :category, :target_amount, :saved_amount, :deadline, :status, :notes);
+        """
+        return self._write(sql, {"user_id": user_id,"goal_name": goal_name,"category": category,"target_amount": target_amount,"deadline": deadline,"notes": goal_notes,"status": status,"saved_amount":saved_amount})
+
+    def update_goal(self,user_id: str, reference_id: str,**kwargs ) -> bool:
+        set_clause = ", ".join(f"{key} = :{key}" for key in kwargs)
+        sql = f"""
+                UPDATE goals
+                SET {set_clause}, updated_at = CURRENT_TIMESTAMP
+                WHERE id = :reference_id AND user_id = :user_id;
+            """
+        return self._write(sql, {"reference_id": reference_id, "user_id": user_id, **kwargs})
+
+
+    def get_avg_income_expenses(self, user_id: str, start_date: str, end_date: str) -> list:
+        sql = """
+            select avg(amount) as avg_amount from income where date between :start_date and :end_date and user_id = :user_id
+            UNION ALL
+            select avg(amount) as avg_amount from expenses where date between :start_date and :end_date and user_id = :user_id;
+            """
+        return self._fetch(sql, {"user_id": user_id, "start_date": start_date, "end_date": end_date})
