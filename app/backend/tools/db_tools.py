@@ -365,6 +365,9 @@ class DBTools:
         return False, "Unable to update goal"
 
     def add_money_to_goal(self, user_id: str, reference_id: str, amount: float) -> tuple[bool, str]:
+        # TODO: record contribution in goal_progress table
+        # goal_progress links goal_id → expense_id for full audit trail
+        # requires add_expense to return lastrowid and a new add_goal_progress method in db_manager
         goal = self.get_goal(user_id, reference_id)
         if not goal:
             return False, "Goal not found"
