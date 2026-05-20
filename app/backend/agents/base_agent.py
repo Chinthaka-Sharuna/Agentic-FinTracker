@@ -45,7 +45,7 @@ class BaseAgent:
         except Exception as e:
             print(f"Log save error: {e}")
 
-    def api_call(self, model: str, messages: list, tools: list = None):
+    def api_call(self, model: str, messages: list, tools: list = None, stream: bool = False):
         """
         Make a call to the OpenAI-compatible API.
 
@@ -53,6 +53,7 @@ class BaseAgent:
             model    : The model to use for this call
             messages : The conversation messages list
             tools    : (Optional) List of tool definitions for function calling
+            stream   : (Optional) Whether to stream the response
 
         Returns:
             The first choice from the API response
@@ -66,9 +67,12 @@ class BaseAgent:
         if tools:
             kwargs["tools"] = tools
 
+        if stream:
+            kwargs["stream"] = True
+            return self.client.chat.completions.create(**kwargs)
+
         user_message=messages[-1]['content'] if messages else ""
 
-        print(kwargs["messages"])
         response = self.client.chat.completions.create(**kwargs)
         history=messages[0:-1] if len(messages)>1 else []
         ai_response=response.choices[0].message.content

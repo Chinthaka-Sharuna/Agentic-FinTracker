@@ -167,7 +167,6 @@ function clearAttachedFile() {
 
 
 // ─── Send message ─────────────────────────────────────────────────────────────
-
 function handleSendMessage() {
     const text = chatInput.value.trim();
     if (!text && !attachedFile) return;
@@ -179,33 +178,83 @@ function handleSendMessage() {
     clearAttachedFile();
 
     showTypingIndicator();
-    sendToBot(text, fileSnapshot)
-        .then(reply => {
+
+    let botBubble = null;
+    let fullText  = '';
+
+    sendToBot(text, fileSnapshot, (chunk) => {
+        if (!botBubble) {
+            // first chunk arrives — swap typing indicator for a real bubble
             hideTypingIndicator();
-            appendBotMessage(reply);  // pass raw text — renderMarkdown called inside
-        })
-        .catch(err => {
-            hideTypingIndicator();
-            appendErrorMessage(`<strong>⚠️ Something went wrong.</strong> ${escapeHTML(err.message || 'Please try again.')}`);
-        });
+            chatMessages.insertAdjacentHTML('beforeend', `
+                <div class="chat-msg bot">
+                    <div class="chat-bubble markdown-body"></div>
+                </div>`);
+            botBubble = chatMessages.querySelector('.chat-msg.bot:last-child .chat-bubble');
+        }
+        fullText += chunk;
+        botBubble.textContent = fullText;   // plain text while streaming
+        scrollToBottom();
+    })
+    .then(() => {
+        hideTypingIndicator();              // covers case where no chunks arrived
+        if (botBubble) {
+            botBubble.innerHTML = renderMarkdown(fullText);  // final markdown render
+            scrollToBottom();
+        }
+    })
+    .catch(err => {
+        hideTypingIndicator();
+        appendErrorMessage(`<strong>⚠️ Something went wrong.</strong> ${escapeHTML(err.message || 'Please try again.')}`);
+    });
 }
 
-async function sendToBot(text, file) {
+async function sendToBot(text, file, onChunk = null) {
     const formData = new FormData();
     formData.append('message', text);
     if (file) formData.append('file', file);
 
+    if (onChunk) {
+        const res = await authFetch('/api/chat/stream', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Chat service unavailable');
+
+        const reader  = res.body.getReader();
+        const decoder = new TextDecoder();
+        let   buffer  = '';
+        let   full    = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop();  // keep incomplete chunk
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6).trim();
+                if (raw === '[DONE]') return full;
+                const { chunk, error } = JSON.parse(raw);
+                if (error) throw new Error(error);
+                full += chunk;
+                onChunk(chunk);
+            }
+        }
+        return full;
+    }
+
+    // non-streaming fallback — existing behaviour unchanged
     const res = await authFetch('/api/chat', { method: 'POST', body: formData });
     if (!res.ok) throw new Error('Chat service unavailable');
     const data = await res.json();
     return data.reply;
 }
 
-
 // ─── Reset ────────────────────────────────────────────────────────────────────
 
 async function handleResetChat() {
-    if (!confirm('Clear the conversation? This will erase your full chat history.')) return;
+    if (!confirm('Reset the conversation? This will clear the current context but your history will be preserved.')) return;
     try {
         await authFetch('/api/chat/clear', { method: 'DELETE' });
     } catch (_) {}

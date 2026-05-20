@@ -77,7 +77,6 @@ class Chatbot(BaseAgent):
             "role": "assistant",
             "content": assistant_message,
         })
-        # print(self.conversation_history)
         if self.save_msg:
             self.save_msg(role="assistant", content=assistant_message, user_id=user_id)
         return assistant_message
@@ -114,3 +113,82 @@ class Chatbot(BaseAgent):
     def clear_history(self):
         """Reset conversation history, keeping only the system prompt."""
         self.conversation_history = [self.conversation_history[0]]
+
+    def stream_message(self, message: str, user_id: str = None):
+        """
+            Generator that yields text chunks as the assistant responds.
+            Tool call rounds are handled silently (fully consumed, not streamed).
+            Only the final text response is yielded chunk by chunk.
+        """
+        self.conversation_history.append({"role": "user", "content": message})
+        if self.save_msg:
+            self.save_msg(role="user", content=message, user_id=user_id)
+
+        tools = self.tools_obj.functions_formatter()
+
+        while True:
+            stream       = self.api_call(model=self.model, messages=self.conversation_history, tools=tools, stream=True)
+            finish_reason   = None
+            content_chunks  = []
+            tool_calls_raw  = {}
+
+            for chunk in stream:
+                choice        = chunk.choices[0]
+                finish_reason = choice.finish_reason or finish_reason
+                delta         = choice.delta
+
+                # Stream text chunks to the client
+                if delta.content:
+                    content_chunks.append(delta.content)
+                    yield delta.content
+
+                # Assemble tool call chunks (they arrive fragmented)
+                if delta.tool_calls:
+                    for tc in delta.tool_calls:
+                        idx = tc.index
+                        if idx not in tool_calls_raw:
+                            tool_calls_raw[idx] = {
+                                "id":       tc.id or "",
+                                "type":     "function",
+                                "function": {"name": tc.function.name or "", "arguments": ""}
+                            }
+                        if tc.id:
+                            tool_calls_raw[idx]["id"] = tc.id
+                        if tc.function.name:
+                            tool_calls_raw[idx]["function"]["name"] = tc.function.name
+                        if tc.function.arguments:
+                            tool_calls_raw[idx]["function"]["arguments"] += tc.function.arguments
+
+            if finish_reason == "tool_calls":
+                # Build the assistant message containing tool_calls
+                assembled = [tool_calls_raw[i] for i in sorted(tool_calls_raw)]
+                self.conversation_history.append({
+                    "role":       "assistant",
+                    "content":    None,
+                    "tool_calls": assembled
+                })
+
+                # Execute every tool and collect results
+                tool_results = []
+                for tc in assembled:
+                    tool_name = tc["function"]["name"]
+                    args      = json.loads(tc["function"]["arguments"])
+                    result    = self.tools_obj.tool_handler(user_id, tool_name=tool_name, args=args)
+                    tool_results.append({
+                        "role":        "tool",
+                        "tool_call_id": tc["id"],
+                        "content":     result
+                    })
+                    if self.save_msg:
+                        self.save_msg(role="tool", content=result, user_id=user_id)
+
+                self.conversation_history.extend(tool_results)
+                # loop back — get the next response (may be another tool call or final text)
+
+            else:
+                # Final text response — save and stop
+                full_content = "".join(content_chunks)
+                self.conversation_history.append({"role": "assistant", "content": full_content})
+                if self.save_msg:
+                    self.save_msg(role="assistant", content=full_content, user_id=user_id)
+                break

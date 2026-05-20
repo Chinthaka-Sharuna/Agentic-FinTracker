@@ -233,28 +233,28 @@ class DatabaseManager:
     def get_all_transactions(self, user_id: int, start_date: str = None, end_date: str = None) -> list:
         if start_date and end_date:
             sql = """
-                select amount,description,'income' as category,date
+                select amount,description,'income' as category,date,created_at
                 from income
                 WHERE user_id = :user_id AND date BETWEEN :start_date AND :end_date
                 union all
-                select (-1)*amount,description,category,date
+                select (-1)*amount,description,category,date,created_at
                 from expenses
                 WHERE user_id = :user_id AND date BETWEEN :start_date AND :end_date
                 
-                ORDER BY date DESC;
+                ORDER BY date DESC,created_at DESC;
             """
             return self._fetch(sql, {"user_id": user_id, "start_date": start_date, "end_date": end_date}) or []
         else:
             sql = """
-                select amount,description,'income' as category,date
+                select amount,description,'income' as category,date,created_at
                 from income
                 WHERE user_id = :user_id
                 union all
-                select (-1)*amount,description,category,date
+                select (-1)*amount,description,category,date,created_at
                 from expenses
                 WHERE user_id = :user_id
                 
-                ORDER BY date DESC;
+                ORDER BY date DESC,created_at DESC;
             """
             return self._fetch(sql, {"user_id": user_id}) or []
 

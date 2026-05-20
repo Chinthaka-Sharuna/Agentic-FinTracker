@@ -1,7 +1,7 @@
 import calendar
 import uuid
 from datetime import date, datetime, timedelta
-from flask import Flask, request, jsonify, render_template, g
+from flask import Flask, json, request, jsonify, render_template, g,Response, stream_with_context
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import Config, DatabaseManager, DBTools, Chatbot, PDFExtractor,GoalRiskScorer,Tools
@@ -29,9 +29,6 @@ pdf_extractor = PDFExtractor(
     system_prompt=Config.PDF_EXTRACTOR_SYSTEM_PROMPT
 )
 
-goal_risk_scorer=GoalRiskScorer(
-    api_key=Config.API_KEY
-)
 
 app = Flask(__name__, static_folder=Config.APP_STATIC, template_folder=Config.APP_TEMPLATES)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024   # 10 MB
@@ -195,14 +192,9 @@ def me():
 # -------------------------------------
 # Chat related api endpoints
 # -------------------------------------
-@app.route("/api/chat", methods=["POST"])
+@app.route("/api/chat/stream", methods=["POST"])
 @require_auth
-def chat():
-    """
-    POST /api/chat  (multipart/form-data)
-    Fields: message (text), file (optional PDF)
-    Header: Authorization: Bearer <token>
-    """
+def chat_stream():
     try:
         message = request.form.get("message", "").strip()
         file    = request.files.get("file")
@@ -211,15 +203,27 @@ def chat():
             return jsonify({"error": "Message or file required"}), 400
 
         if file and allowed_file(file.filename):
-            raw_pdf = file.read()
+            raw_pdf   = file.read()
             extracted = pdf_extractor.extract(raw_pdf)
-            message = (
+            message   = (
                 f"I have uploaded a PDF bank statement. Extracted content:\n{extracted}"
                 + (f"\n\nMy message: {message}" if message else "")
             )
 
-        reply = chatbot.send_message(user_id=g.user_id, message=message)
-        return jsonify({"reply": reply}), 200
+        def generate():
+            try:
+                for chunk in chatbot.stream_message(user_id=g.user_id, message=message):
+                    yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            finally:
+                yield "data: [DONE]\n\n"
+
+        return Response(
+            stream_with_context(generate()),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+        )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -234,9 +238,9 @@ def chat_history():
 @app.route("/api/chat/clear", methods=["DELETE"])
 @require_auth
 def clear_chat():
-    """Delete all chat history for the current user."""
+    """Clear the in-memory conversation context for the current user."""
     chatbot.clear_history()
-    return jsonify({"message": "Chat history cleared"}), 200
+    return jsonify({"message": "Chat context cleared"}), 200
 
 # -------------------------------------
 # api endpoint for dashboard page
@@ -395,7 +399,7 @@ def create_goal():
         force_creation=force_creation
     )
     if result["status"]=="success":
-        return jsonify({"status": "success", "message": "Goal updated successfully"}), 200
+        return jsonify({"status": "success", "message": "Goal created successfully"}), 200
     elif result["status"]=="warning":
         return jsonify({"status": "warning", "message": result["message"]}), 200
     else:
