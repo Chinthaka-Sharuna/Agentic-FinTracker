@@ -8,13 +8,13 @@ A personal finance tracker with an AI-powered conversational assistant. Log inco
 
 ## Features
 
-- **AI Chat Assistant** — Converse naturally to log transactions, check balances, manage goals, and query spending history. Powered by OpenAI with function calling.
-- **PDF Bank Statement Import** — Upload a PDF and the agent automatically extracts and categorizes transactions; you confirm before anything is saved.
-- **Dashboard** — Monthly income vs. spending summary, balance change from last month, top spending categories, and recent transactions.
-- **Transactions** — Unified view of all income and expenses, filterable by month.
-- **Budget Analysis** — Spending breakdown by category with percentage visualization and daily trends.
-- **Savings Goals** — Create goals with deadlines; an AI risk scorer compares your target against projected savings and flags unrealistic goals.
-- **Multi-user** — Each account is fully isolated; sessions expire after 7 days.
+- **AI Chat Assistant** - Converse naturally to log transactions, check balances, manage goals, and query spending history. Powered by OpenAI with function calling.
+- **PDF Bank Statement Import** - Upload a PDF and the agent automatically extracts and categorizes transactions; you confirm before anything is saved.
+- **Dashboard** - Monthly income vs. spending summary, balance change from last month, top spending categories, and recent transactions.
+- **Transactions** - Unified view of all income and expenses, filterable by month.
+- **Budget Analysis** - Spending breakdown by category with percentage visualization and daily trends.
+- **Savings Goals** - Create goals with deadlines; an AI risk scorer compares your target against projected savings and flags unrealistic goals.
+- **Multi-user** - Each account is fully isolated; sessions expire after 7 days.
 
 ---
 
@@ -55,7 +55,7 @@ Agentic FinTracker/
         │   └── tables_schema.sql # Schema: users, sessions, income, expenses, goals, chat
         └── tools/
             ├── db_tools.py       # Financial tools callable by the LLM
-            └── tools.py          # Tool dispatcher / router
+            └── tools.py          # Tool router
     └── frontend/
         ├── templates/            # Jinja2 HTML templates
         └── static/
@@ -187,7 +187,7 @@ The AI assistant can invoke these tools during a conversation:
 
 ## Development
 
-- Add or change models and prompts in [app/config/config.YAML](app/config/config.YAML) — no code changes needed.
+- Add or change models and prompts in [app/config/config.YAML](app/config/config.YAML) - no code changes needed.
 - Add new LLM-callable tools in [app/backend/tools/db_tools.py](app/backend/tools/db_tools.py) and register them in [app/backend/tools/tools.py](app/backend/tools/tools.py).
 - After adding dependencies: `pip freeze > requirements.txt`
 
@@ -197,13 +197,13 @@ The AI assistant can invoke these tools during a conversation:
 
 Planned improvements for future versions:
 
-- **Goal progress history** — Record each contribution in the `goal_progress` table, linking goal contributions to their expense records for a full audit trail
-- **Goal status computation** — Implement proper risk-based and progress-based logic in `_compute_goal_status()` (currently returns `on-track` as a placeholder)
-- **User settings page** — Currency selection, date format, display preferences, and chatbot behaviour toggles
-- **Currency support** — Apply user-selected currency across all endpoints and dashboard displays
-- **Budget alerts** — Notify when monthly spending in a category exceeds a set threshold
-- **Recurring transactions** — Auto-log repeating income and expenses (e.g. salary, subscriptions)
--**Mobile app with NFC support** — Tap-to-log expenses using NFC on supported devices
+- **Goal progress history** - Record each contribution in the `goal_progress` table, linking goal contributions to their expense records for a full audit trail
+- **Goal status computation** - Implement proper risk-based and progress-based logic in `_compute_goal_status()` (currently returns `on-track` as a placeholder)
+- **User settings page** - Currency selection, date format, display preferences, and chatbot behaviour toggles
+- **Currency support** - Apply user-selected currency across all endpoints and dashboard displays
+- **Budget alerts** - Notify when monthly spending in a category exceeds a set threshold
+- **Recurring transactions** - Auto-log repeating income and expenses (e.g. salary, subscriptions)
+-**Mobile app with NFC support** - Tap-to-log expenses using NFC on supported devices
 
 ---
 
