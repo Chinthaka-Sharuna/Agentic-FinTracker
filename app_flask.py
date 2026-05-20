@@ -380,7 +380,6 @@ def create_goal():
 
     goal_name = data.get("goal_name", "").strip()
     target_amount = data.get("target_amount", 0)
-    saved_amount = data.get("saved_amount", 0)
     deadline = data.get("deadline", "")
     category = data.get("category", "")
     goal_notes = data.get("goal_notes", "")
@@ -388,9 +387,11 @@ def create_goal():
 
     result=db_tools.create_new_goal(
         user_id=g.user_id,
-        goal_name=goal_name, target_amount=target_amount,
-        saved_amount=saved_amount, deadline=deadline,
-        category=category, goal_notes=goal_notes,
+        goal_name=goal_name,
+        target_amount=target_amount,
+        deadline=deadline,
+        category=category,
+        goal_notes=goal_notes,
         force_creation=force_creation
     )
     if result["status"]=="success":
@@ -399,8 +400,6 @@ def create_goal():
         return jsonify({"status": "warning", "message": result["message"]}), 200
     else:
         return jsonify({"status": "failed", "message": result["message"]}), 400
-
-
 
 
 @app.route("/api/goals/update", methods=["POST"])
