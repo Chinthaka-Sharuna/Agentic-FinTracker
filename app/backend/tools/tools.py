@@ -1,6 +1,3 @@
-from .db_tools import DBTools
-
-
 class Tools:
     def __init__(self, db_tools_obj):
         self.db_tools_obj = db_tools_obj

@@ -1,7 +1,6 @@
 import calendar
 import json
 from datetime import date, datetime
-
 from dateutil.relativedelta import relativedelta
 
 # Allowed kwarg keys for edit_goal — status is NOT included (system-managed only)
@@ -73,9 +72,8 @@ class DBTools:
             return "No expenses recorded for this period."
         return f"Expense summary:\n{result}"
 
-    def create_new_goal(self, user_id: str, goal_name: str, target_amount: float,
-                        deadline: str, category: str, saved_amount: float,
-                        goal_notes: str, force_creation: bool = False) -> dict:
+    def create_new_goal(self, user_id: str, goal_name: str, target_amount: float,deadline: str, category: str,goal_notes: str, force_creation: bool = False) -> dict:
+        saved_amount = 0
         # --- validation ---
         if not goal_name:
             return {"status": "failed", "message": "Goal name required"}
@@ -380,6 +378,13 @@ class DBTools:
         )
         if not success:
             return False, f"Unable to add money to goal. {message}"
+        self.log_expense(
+            user_id=user_id,
+            amount=amount,
+            category="savings",
+            description=f"Added to goal '{goal[0]['goal_name']}'",
+            date=str(date.today())
+        )
         return True, (
             f"Added ${amount:.2f} to goal. "
             f"Saved: ${new_saved:.2f} / ${target_amount:.2f} "
@@ -435,7 +440,6 @@ class DBTools:
                 target_amount=args["target_amount"],
                 deadline=args["deadline"],
                 category=args["category"],
-                saved_amount=args["saved_amount"],
                 goal_notes=args["goal_notes"],
                 force_creation=args.get("force_creation", False)
             )
@@ -529,11 +533,10 @@ class DBTools:
                         "target_amount":  {"type": "number", "description": "Target amount to save."},
                         "deadline":       {"type": "string", "format": "date", "description": "Deadline in YYYY-MM-DD."},
                         "category":       {"type": "string", "description": "Goal category (e.g. Vacation, Emergency Fund)."},
-                        "saved_amount":   {"type": "number", "description": "Amount already saved towards the goal."},
                         "goal_notes":     {"type": "string", "description": "Additional notes."},
                         "force_creation": {"type": "boolean", "description": "Set true to create despite a risk warning."}
                     },
-                    "required": ["goal_name", "target_amount", "deadline", "category", "saved_amount", "goal_notes"],
+                    "required": ["goal_name", "target_amount", "deadline", "category", "goal_notes"],
                     "additionalProperties": False
                 }
             },
@@ -548,7 +551,6 @@ class DBTools:
                         "target_amount":  {"type": "number", "description": "New target amount."},
                         "deadline":       {"type": "string", "format": "date", "description": "New deadline in YYYY-MM-DD."},
                         "category":       {"type": "string", "description": "New category."},
-                        "saved_amount":   {"type": "number", "description": "New saved amount."},
                         "goal_notes":     {"type": "string", "description": "New notes."},
                         "force_creation": {"type": "boolean", "description": "Set true to update despite a risk warning."}
                     },
