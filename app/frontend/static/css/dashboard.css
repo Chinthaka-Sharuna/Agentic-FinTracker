@@ -1,0 +1,179 @@
+/* =============================================== */
+/* ===  DASHBOARD.CSS  —  ONLY index.html       === */
+/* =============================================== */
+/* Loaded in addition to style.css                 */
+
+/* =================== Stat cards =================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+}
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.stat-card.accent {
+    background: linear-gradient(135deg, var(--ink) 0%, #1e293b 100%);
+    color: white;
+    border-color: var(--ink);
+    position: relative;
+    overflow: hidden;
+}
+.stat-card.accent::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.18) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.stat-label {
+    font-size: 12px;
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+.stat-card.accent .stat-label { color: #cbd5e1; }
+.stat-trend {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+.stat-trend.up { background: #d1fae5; color: #065f46; }
+.stat-trend.down { background: #fee2e2; color: #991b1b; }
+.stat-card.accent .stat-trend {
+    background: rgba(96, 165, 250, 0.2);
+    color: var(--accent-bright);
+}
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+.stat-value .cents {
+    font-size: 16px;
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+.stat-card.accent .stat-value .cents { color: #94a3b8; }
+.stat-foot {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+}
+
+.progress-bar {
+    height: 5px;
+    background: var(--line-soft);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-bright) 100%);
+    border-radius: 99px;
+}
+
+
+/* =================== Lower grid (recent + chart) =================== */
+.lower-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+/* Recent transactions list (dashboard mini list, not the full table) */
+.tx-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.tx-list li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-soft);
+}
+.tx-list li:last-child { border-bottom: none; }
+.tx-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.tx-info { flex: 1; min-width: 0; }
+.tx-cat {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.tx-desc {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin-top: 2px;
+}
+.tx-amt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    color: var(--bad);
+    font-weight: 600;
+    white-space: nowrap;
+}
+.tx-amt.income { color: var(--good); }
+
+
+.breakdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.insight {
+    margin-top: 20px;
+    padding: 12px 14px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    font-size: 13px;
+    color: #1e3a8a;
+    line-height: 1.5;
+}
+.insight strong { font-weight: 700; }
+
+
+/* =================== Responsive =================== */
+@media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .lower-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}

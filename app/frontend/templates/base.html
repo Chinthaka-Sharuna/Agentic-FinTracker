@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
+    {% block extra_styles %}{% endblock %}
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <aside id="left-side">
+            <div id="brand">
+                <div class="brand-mark">F</div>
+                <h2>FinTracker</h2>
+            </div>
+
+            <nav id="nav-bar">
+                <p class="nav-label">Workspace</p>
+                <ul>
+                    <li><a href="{{url_for('load_dashboard')}}" id="nav-dashboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        Dashboard
+                    </a></li>
+                    <li><a href="{{url_for('load_transactions')}}" id="nav-transactions">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="7" x2="7" y2="17"></line><polyline points="17 17 17 7 7 7"></polyline></svg>
+                        Transactions
+                    </a></li>
+                    <li><a href="{{url_for('load_budgets')}}" id="nav-budgets">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M7 14l4-4 4 4 5-5"></path></svg>
+                        Budgets
+                    </a></li>
+                    <li><a href="{{url_for('load_goals')}}" id="nav-goals">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        Goals
+                    </a></li>
+                </ul>
+
+                <p class="nav-label">Tools</p>
+                <ul>
+                    <li><a href="#">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        Settings
+                    </a></li>
+                    <li>
+                        <a href="#" id="nav-logout" onclick="handleLogout(event)">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            Sign Out
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div id="account-info">
+                <div class="avatar" id="user-avatar">?</div>
+                <div>
+                    <div id="account-name">Loading...</div>
+                    <div class="account-tier" id="user-email"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+    <button class="chatbot-icon" id="chat-toggle" aria-label="Open AI assistant">
+        <svg class="chat-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <svg class="chat-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <!-- Chat Panel -->
+    <div class="chat-panel" id="chat-panel" aria-hidden="true">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-bot-avatar">F</div>
+                <div>
+                    <div class="chat-title">FinTracker AI</div>
+                    <div class="chat-status" id="chat-status">Online</div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button class="chat-maximize-btn" id="chat-maximize" title="Expand chat">
+                    <svg class="icon-maximize" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+                    <svg class="icon-minimize" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"></path><path d="M20 10h-6V4"></path><path d="M14 10l7-7"></path><path d="M3 21l7-7"></path></svg>
+                </button>
+                <button class="chat-reset-btn" id="chat-reset" title="Clear conversation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.08"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-msg bot">
+                <div class="chat-bubble">Hello! I'm your financial assistant. Ask me about your balance, expenses, or upload a PDF bank statement to analyze.</div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <div class="chat-file-preview" id="chat-file-preview">
+                <div class="chat-file-preview-icon">PDF</div>
+                <div class="chat-file-preview-info">
+                    <div class="chat-file-preview-name" id="chat-file-name"></div>
+                    <div class="chat-file-preview-size" id="chat-file-size"></div>
+                </div>
+                <button class="chat-file-preview-remove" id="chat-file-remove" title="Remove">×</button>
+            </div>
+
+            <input type="file" id="chat-file-input" accept="application/pdf" style="display:none;" />
+
+            <div class="chat-input-row">
+                <button class="chat-attach-btn" id="chat-attach" title="Attach a PDF" aria-label="Attach a PDF">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                </button>
+                <input type="text" id="chat-input" class="chat-input" placeholder="Ask about your finances..." autocomplete="off" />
+                <button class="chat-send-btn" id="chat-send" aria-label="Send message">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+    <!-- Auth guard + sidebar user info — runs before page scripts -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('ft_token');
+            if (!token) {
+                window.location.href = '/auth';
+                return;
+            }
+
+            // Populate sidebar from cached user data immediately
+            const user = JSON.parse(localStorage.getItem('ft_user') || '{}');
+            if (user.username) {
+                const initials = user.username.slice(0, 2).toUpperCase();
+                document.getElementById('user-avatar').textContent  = initials;
+                document.getElementById('account-name').textContent = user.username;
+                document.getElementById('user-email').textContent   = user.email || '';
+            }
+        })();
+
+        // Expose token getter for all JS modules
+        function getAuthToken() {
+            return localStorage.getItem('ft_token');
+        }
+
+        // Authenticated fetch wrapper — automatically redirects on 401
+        async function authFetch(url, options = {}) {
+            const token = getAuthToken();
+            options.headers = options.headers || {};
+            options.headers['Authorization'] = `Bearer ${token}`;
+            const res = await fetch(url, options);
+            if (res.status === 401) {
+                localStorage.removeItem('ft_token');
+                localStorage.removeItem('ft_user');
+                window.location.href = '/auth';
+                throw new Error('Session expired');
+            }
+            return res;
+        }
+
+        async function handleLogout(e) {
+            e.preventDefault();
+            try {
+                await authFetch('/api/auth/logout', { method: 'POST' });
+            } catch (_) {}
+            localStorage.removeItem('ft_token');
+            localStorage.removeItem('ft_user');
+            window.location.href = '/auth';
+        }
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="{{url_for('static', filename='js/chat.js')}}"></script>
+</body>
+</html>

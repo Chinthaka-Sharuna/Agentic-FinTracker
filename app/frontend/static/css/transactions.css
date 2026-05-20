@@ -1,0 +1,238 @@
+/* =============================================== */
+/* ===  TRANSACTIONS.CSS  —  ONLY transactions  === */
+/* =============================================== */
+
+/* =================== Summary strip =================== */
+.tx-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+}
+.tx-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.tx-summary-item + .tx-summary-item {
+    border-left: 1px solid var(--line-soft);
+    padding-left: 22px;
+}
+.tx-summary-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+}
+.tx-summary-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.tx-summary-value.income { color: var(--good); }
+.tx-summary-value.expense { color: var(--bad); }
+
+
+/* =================== Panel overrides for the table panel =================== */
+.tx-panel { padding: 0; }
+.tx-panel-header {
+    padding: 22px 24px 16px 24px;
+    margin: 0;
+}
+.tx-panel-sub {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    color: var(--ink-muted);
+}
+
+
+/* =================== Filter dropdown =================== */
+.tx-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.tx-filter-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    font-weight: 500;
+}
+.tx-select {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 32px 8px 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+.tx-select:hover {
+    border-color: var(--accent);
+}
+.tx-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+
+/* =================== Table =================== */
+.tx-table-wrap {
+    overflow-x: auto;
+    border-top: 1px solid var(--line-soft);
+}
+.tx-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.tx-table thead {
+    background: var(--bg);
+}
+.tx-table thead th {
+    text-align: left;
+    padding: 12px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+.tx-table tbody td {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: middle;
+}
+.tx-table tbody tr {
+    transition: background 0.12s ease;
+}
+.tx-table tbody tr:hover {
+    background: var(--bg);
+}
+.tx-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Column widths */
+.col-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    width: 130px;
+}
+.col-tx { min-width: 240px; }
+.col-num {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    white-space: nowrap;
+    width: 130px;
+}
+
+/* Transaction cell — dot + description + category */
+.tx-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.tx-cell-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.tx-cell-desc {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+}
+.tx-cell-cat {
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: capitalize;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+}
+
+/* Debit / Credit / Balance values */
+.tx-table .debit {
+    color: var(--bad);
+    font-weight: 500;
+}
+.tx-table .credit {
+    color: var(--good);
+    font-weight: 500;
+}
+.tx-table .balance {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+
+/* =================== Empty state =================== */
+.tx-empty {
+    padding: 60px 24px;
+    text-align: center;
+}
+.tx-empty-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+.tx-empty-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 4px 0;
+}
+.tx-empty-sub {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin: 0;
+}
+
+
+/* =================== Responsive =================== */
+@media (max-width: 900px) {
+    .tx-summary-strip {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .tx-summary-item:nth-child(odd) {
+        border-left: none;
+        padding-left: 0;
+    }
+    .tx-summary-item:nth-child(3) {
+        border-top: 1px solid var(--line-soft);
+        padding-top: 12px;
+    }
+    .tx-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+    .tx-table thead th,
+    .tx-table tbody td {
+        padding: 12px 16px;
+    }
+}

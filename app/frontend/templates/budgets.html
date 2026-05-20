@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Budgets - FinTracker{% endblock %}
+
+{% block extra_styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/budgets.css') }}">
+{% endblock %}
+
+{% block content %}
+<header>
+    <div>
+        <p class="date-line">Budgets</p>
+        <h1>Spending <span>Insights</span>.</h1>
+    </div>
+</header>
+
+<section class="dashboard-content">
+    <div class="bg-period-bar">
+        <div class="bg-period-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Date range</span>
+        </div>
+        <div class="bg-period-inputs">
+            <div class="bg-date-input">
+                <label for="start-date">From</label>
+                <input type="date" id="start-date" />
+            </div>
+            <div class="bg-arrow">→</div>
+            <div class="bg-date-input">
+                <label for="end-date">To</label>
+                <input type="date" id="end-date" />
+            </div>
+            <button id="apply-range" class="bg-apply-btn">Apply</button>
+        </div>
+        <div class="bg-quick-presets">
+            <button class="bg-preset" data-preset="7">7d</button>
+            <button class="bg-preset" data-preset="30">30d</button>
+            <button class="bg-preset" data-preset="90">3m</button>
+            <button class="bg-preset" data-preset="365">1y</button>
+        </div>
+    </div>
+
+    <div class="panel bg-chart-panel">
+        <div class="panel-header">
+            <div>
+                <h3>Spending Over Time</h3>
+                <p class="bg-chart-sub" id="bg-chart-sub">Daily spending breakdown</p>
+            </div>
+            <div class="bg-chart-summary">
+                <div class="bg-summary-pill">
+                    <span class="bg-summary-label">Total</span>
+                    <span class="bg-summary-value" id="bg-total">$0.00</span>
+                </div>
+                <div class="bg-summary-pill">
+                    <span class="bg-summary-label">Avg / day</span>
+                    <span class="bg-summary-value" id="bg-avg">$0.00</span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-chart-wrap">
+            <canvas id="spending-bar-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-section-header">
+        <h3>Category Budgets</h3>
+        <span class="bg-section-sub" id="bg-cards-sub">Tracking against budget limits</span>
+    </div>
+    <div class="bg-cards-grid" id="budget-cards">
+        </div>
+
+    <div class="panel bg-ai-panel">
+        <div class="bg-ai-header">
+            <div class="bg-ai-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+            </div>
+            <div>
+                <h3>AI Recommendations</h3>
+                <p class="bg-ai-sub">Based on your recent spending patterns</p>
+            </div>
+            <span class="bg-ai-badge">PREVIEW</span>
+        </div>
+
+        <div class="bg-ai-body" id="ai-insights">
+            </div>
+
+        <div class="bg-ai-footer">
+            <span class="bg-ai-disclaimer">⚡ Powered by AI · Insights are illustrative for now</span>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module" src="{{ url_for('static', filename='js/budgets.js') }}"></script>
+{% endblock %}
