@@ -1,0 +1,38 @@
+# Python cache — this removes ALL __pycache__ folders
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# SQLite DB — stored in Docker volume, not baked into image
+*.sqlite3
+*.db
+data/
+
+# Environment secrets
+.env
+
+# Git
+.git/
+.gitignore
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+
+# uv lock (optional, pip uses requirements.txt)
+uv.lock
+
+# Misc
+.DS_Store
+*.log
+README.md
+
+
+data/

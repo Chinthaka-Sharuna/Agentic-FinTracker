@@ -1,0 +1,16 @@
+version: '3'
+services:
+  app:
+    build: .
+    image: agentic_fintracker:v1.0.0
+    container_name: agentic_fintracker
+    ports:
+      - "5000:5000"
+    volumes:
+      - sqlite_data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
