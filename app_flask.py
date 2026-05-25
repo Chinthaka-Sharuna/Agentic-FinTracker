@@ -91,9 +91,9 @@ def load_index():
 def load_dashboard():
     return render_template("dashboard.html")
 
-@app.route("/budgets")
-def load_budgets():
-    return render_template("budgets.html")
+@app.route("/expense-overview")
+def load_expense_overview():
+    return render_template("expense-overview.html")
 
 @app.route("/transactions")
 def load_transactions():
@@ -342,9 +342,9 @@ def get_transactions():
 #  Budgets endpoint
 # ------------------------------------------------------------------ #
 
-@app.route("/api/budgets", methods=["POST"])
+@app.route("/api/expense-overview", methods=["POST"])
 @require_auth
-def get_budgets():
+def get_expense_overview():
     """Get categorized spending vs income for the current month."""
     try:
         year, month, start_day, end_day, _ = db_tools.get_current_month_date_range()

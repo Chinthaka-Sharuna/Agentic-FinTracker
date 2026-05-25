@@ -144,12 +144,7 @@ function getFilteredTransactions() {
     });
 }
 
-
-
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', async () => {
+async function initPage() {
     txCount       = document.getElementById('tx-count');
     txTotalCredit = document.getElementById('tx-total-credit');
     txTotalDebit  = document.getElementById('tx-total-debit');
@@ -214,4 +209,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         txEmpty.style.display   = 'block';
         tbody.innerHTML         = '';
     }
-});
+}
+
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', initPage);

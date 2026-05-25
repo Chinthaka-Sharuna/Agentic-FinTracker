@@ -384,12 +384,14 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
     if (e.target === modalOverlay) closeModal();
 });
 
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+function initPage(){
     document.getElementById('goal-saved').disabled = true;
     refreshGoals();
-});
+}
+
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', initPage)
 
 // ── Expose functions to global scope for inline onclick handlers ──────────────
 window.openEditGoalModal = openEditGoalModal;

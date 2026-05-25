@@ -35,6 +35,8 @@ body, html {
     background-color: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 button { font-family: inherit; cursor: pointer; }

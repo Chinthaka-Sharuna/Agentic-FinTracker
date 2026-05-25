@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Budgets - FinTracker{% endblock %}
+{% block title %}Expense Overview - FinTracker{% endblock %}}
 
 {% block extra_styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/budgets.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/expense_overview.css') }}">
 {% endblock %}
 
 {% block content %}
 <header>
     <div>
-        <p class="date-line">Budgets</p>
+        <p class="date-line">Expense Overview</p>
         <h1>Spending <span>Insights</span>.</h1>
     </div>
 </header>
@@ -92,5 +92,5 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script type="module" src="{{ url_for('static', filename='js/budgets.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/expense_overview.js') }}"></script>
 {% endblock %}

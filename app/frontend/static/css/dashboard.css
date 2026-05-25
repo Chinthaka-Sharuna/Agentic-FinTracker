@@ -151,11 +151,39 @@
 .tx-amt.income { color: var(--good); }
 
 
+/* =================== Pie chart + legend =================== */
 .breakdown {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    min-height: 420px;
 }
+
+.pie-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;    /* ← gap between chart and legend */
+    padding: 0 16px;
+}
+
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.pie-legend-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+
 .insight {
     margin-top: 20px;
     padding: 12px 14px;

@@ -1,5 +1,6 @@
 import sqlite3 as sqli
 import threading
+import os
 
 
 class DatabaseManager:
@@ -9,6 +10,7 @@ class DatabaseManager:
     """
 
     def __init__(self, db_path: str):
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.conn = sqli.connect(db_path, check_same_thread=False)
         self.conn.execute("PRAGMA foreign_keys = ON")
         self._lock = threading.Lock()

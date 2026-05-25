@@ -40,7 +40,6 @@ function updateSpentCard(amount, income) {
 }
 
 function updateIncomeCard(amount, lastLoggedDate) {
-    // guard against invalid or missing date
     const dateObj = new Date(lastLoggedDate);
     const formattedDate = isNaN(dateObj.getTime())
         ? 'Not recorded yet'
@@ -69,7 +68,7 @@ function updateTotalBalanceCard(totalBalanceAmount, percentageChange) {
 }
 
 function updatePieChartCard(data, elementId) {
-    if (!data || data.length === 0) {
+    if (!data || data.length === 0 || data.length === 1) {
         pieChartMonth.textContent = date[1].toUpperCase();
         elementId.parentElement.innerHTML = `
             <div style="
@@ -82,9 +81,11 @@ function updatePieChartCard(data, elementId) {
             </div>`;
         return;
     }
+
     pieChartMonth.textContent = date[1].toUpperCase();
     const chartData = prepareChartData(data);
     Chart.register(ChartDataLabels);
+
     new Chart(elementId, {
         type: 'pie',
         data: {
@@ -92,21 +93,32 @@ function updatePieChartCard(data, elementId) {
             datasets: [{ data: chartData.data, backgroundColor: chartData.colors }]
         },
         options: {
-            layout: { padding: 30 },
+            layout: { padding: { left: 0, right: 0, top: 30, bottom: 20 } },
             plugins: {
-                legend: { position: 'bottom' },
+                legend: { display: false },  // disabled — using custom HTML legend
                 datalabels: {
                     color: (ctx) => ctx.dataset.backgroundColor[ctx.dataIndex],
-                    font: { size: 14, weight: 'bold' },
+                    font: { size: 11, weight: 'bold' },
                     formatter: (value, ctx) => {
                         const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                         return Math.round(value / total * 100) + '%';
                     },
-                    anchor: 'end', align: 'end', offset: 8
+                    anchor: 'end', align: 'end', offset: 15
                 }
             }
         }
     });
+
+    // Build custom HTML legend in separate div
+    const legendEl = document.getElementById('pie-chart-legend');
+    if (legendEl) {
+        legendEl.innerHTML = chartData.labels.map((label, i) => `
+            <div class="pie-legend-item">
+                <div class="pie-legend-box" style="background:${chartData.colors[i]}"></div>
+                <span>${label}</span>
+            </div>
+        `).join('');
+    }
 }
 
 function updateGreeting() {
@@ -193,10 +205,7 @@ function prepareChartData(categories) {
     };
 }
 
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', () => {
+async function initPage() {
     billingDate                = document.getElementById('billing-date');
     remainingBalance           = document.getElementById('remaining-balance');
     remainingBalancePercentage = document.getElementById('remaining-balance-percentage');
@@ -229,10 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "other":         { color: '#94A3B8', bg: '#F1F5F9' }
     };
 
-    // authFetch is defined in base.html
-    authFetch('/api/dashboard', {
-        method: 'POST'
-    })
+    authFetch('/api/dashboard', { method: 'POST' })
         .then(res => {
             if (!res.ok) throw new Error('Could not fetch dashboard data');
             return res.json();
@@ -244,4 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => {
             console.error('Dashboard fetch failed:', err);
         });
-});
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', initPage);
+window.addEventListener('pagerefresh', initPage);

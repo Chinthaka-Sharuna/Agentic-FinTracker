@@ -244,7 +244,7 @@ function updateAIInsights(data) {
 
 async function fetchAndUpdate(startStr, endStr) {
     try {
-        const res = await authFetch('/api/budgets', {
+        const res = await authFetch('/api/expense-overview', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ start_date: startStr, end_date: endStr })
@@ -314,10 +314,7 @@ presets.forEach(btn => {
     });
 });
 
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', async () => {
+async function initPage(){
     colorMap = {
         food:          { color: '#F97316', bg: '#FFEDD5' },
         transport:     { color: '#0EA5E9', bg: '#E0F2FE' },
@@ -345,4 +342,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     endDateInput.value   = endStr;
 
     await fetchAndUpdate(startStr, endStr);
-});
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded',initPage);
