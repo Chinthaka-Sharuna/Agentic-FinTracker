@@ -36,8 +36,7 @@ A personal finance tracker with an AI-powered conversational assistant. Log inco
 
 ```
 Agentic FinTracker/
-├── app_flask.py                  # Flask entry point, all routes and API endpoints
-├── main.py                       # Alternative Gradio UI (experimental)
+├── main.py                  # Flask entry point, all routes and API endpoints
 ├── requirements.txt
 ├── .env                          # Your API key (see Setup)
 └── app/
@@ -75,10 +74,15 @@ Agentic FinTracker/
 ### 1. Clone and create a virtual environment
 
 ```powershell
-git clone <repo-url>
+git clone <https://github.com/Chinthaka-Sharuna/Agentic-FinTracker.git>
 cd "Agentic FinTracker"
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+
+# On Windows:
+.\.venv\Scripts\activate
+
+# On macOS/Linux:
+source .venv/bin/activate
 ```
 
 ### 2. Install dependencies
@@ -98,12 +102,45 @@ API_KEY=sk-proj-your-openai-api-key-here
 ### 4. Run the app
 
 ```powershell
-python app_flask.py
+python main.py
 ```
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser, register an account, and start tracking.
 
 ---
+# Deployment (Docker)
+
+## 1. Configure Environment Variables
+
+Create a `.env` file:
+
+``` env
+API_KEY=sk-proj-your-openai-api-key-here
+```
+
+## 2. Build and Start the Container
+
+``` bash
+docker compose up -d --build
+```
+
+The app will be available at:
+
+-   http://localhost:5000
+
+SQLite data and chat logs are persisted in the local `./data` volume.
+
+### View Logs
+
+``` bash
+docker compose logs -f
+```
+
+### Stop the Container
+
+``` bash
+docker compose down
+```
 
 ## Configuration
 
@@ -187,7 +224,7 @@ The AI assistant can invoke these tools during a conversation:
 
 ## Development
 
-- Add or change models and prompts in [app/config/config.YAML](app/config/config.YAML) — no code changes needed.
+- Add or change models and prompts in [app/config/config.YAML](app/config/config.YAML) - no code changes needed.
 - Add new LLM-callable tools in [app/backend/tools/db_tools.py](app/backend/tools/db_tools.py) and register them in [app/backend/tools/tools.py](app/backend/tools/tools.py).
 - After adding dependencies: `pip freeze > requirements.txt`
 
@@ -197,13 +234,13 @@ The AI assistant can invoke these tools during a conversation:
 
 Planned improvements for future versions:
 
-- **Goal progress history** — Record each contribution in the `goal_progress` table, linking goal contributions to their expense records for a full audit trail
-- **Goal status computation** — Implement proper risk-based and progress-based logic in `_compute_goal_status()` (currently returns `on-track` as a placeholder)
-- **User settings page** — Currency selection, date format, display preferences, and chatbot behaviour toggles
-- **Currency support** — Apply user-selected currency across all endpoints and dashboard displays
-- **Budget alerts** — Notify when monthly spending in a category exceeds a set threshold
-- **Recurring transactions** — Auto-log repeating income and expenses (e.g. salary, subscriptions)
--**Mobile app with NFC support** — Tap-to-log expenses using NFC on supported devices
+- **Goal progress history** - Record each contribution in the `goal_progress` table, linking goal contributions to their expense records for a full audit trail
+- **Goal status computation** - Implement proper risk-based and progress-based logic in `_compute_goal_status()` (currently returns `on-track` as a placeholder)
+- **User settings page** - Currency selection, date format, display preferences, and chatbot behaviour toggles
+- **Currency support** - Apply user-selected currency across all endpoints and dashboard displays
+- **Budget alerts** - Notify when monthly spending in a category exceeds a set threshold
+- **Recurring transactions** - Auto-log repeating income and expenses (e.g. salary, subscriptions)
+-**Mobile app with NFC support** - Tap-to-log expenses using NFC on supported devices
 
 ---
 
