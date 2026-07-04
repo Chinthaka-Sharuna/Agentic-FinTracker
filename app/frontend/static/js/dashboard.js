@@ -93,17 +93,17 @@ function updatePieChartCard(data, elementId) {
             datasets: [{ data: chartData.data, backgroundColor: chartData.colors }]
         },
         options: {
-            layout: { padding: { left: 0, right: 0, top: 30, bottom: 20 } },
+            layout: { padding: { left: 40, right: 40, top: 30, bottom: 30 } },
             plugins: {
                 legend: { display: false },  // disabled — using custom HTML legend
                 datalabels: {
                     color: (ctx) => ctx.dataset.backgroundColor[ctx.dataIndex],
-                    font: { size: 11, weight: 'bold' },
+                    font: { size: 14, weight: 'bold' },
                     formatter: (value, ctx) => {
                         const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                         return Math.round(value / total * 100) + '%';
                     },
-                    anchor: 'end', align: 'end', offset: 15
+                    anchor: 'end', align: 'end', offset: 10
                 }
             }
         }
